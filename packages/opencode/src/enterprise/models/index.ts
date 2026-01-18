@@ -39,7 +39,7 @@ export interface EnterpriseModelInstance {
 let modelInstancesCache: Map<string, EnterpriseModelInstance> | null = null
 
 /**
- * Crée une instance de modèle Anthropic
+ * Crée une instance de modèle Anthropic (via Azure AI Foundry)
  */
 function createAnthropicModel(model: EnterpriseAIModel): any {
 	try {
@@ -48,18 +48,47 @@ function createAnthropicModel(model: EnterpriseAIModel): any {
 			log.warn(`Clé API Anthropic manquante pour ${model.id}`)
 		}
 
-		const anthropic = createAnthropic({ apiKey })
+		// Récupérer le baseURL depuis ANTHROPIC_BASE_URL (Azure AI Foundry endpoint)
+		const baseURL = model.azureEndpoint
+			? resolveEnvVars(model.azureEndpoint)
+			: process.env.ANTHROPIC_BASE_URL
 
-		// Pour Claude Sonnet, utiliser claude-sonnet-4-5 (dernière version)
-		const modelName = model.id === "claude-sonnet" ? "claude-sonnet-4-5-20241022" : model.id
+		if (!baseURL) {
+			log.warn(`ANTHROPIC_BASE_URL manquante pour ${model.id}, utilisation de l'API Anthropic par défaut`)
+		}
 
-		log.info(`Provider Anthropic créé pour ${model.id}`, { modelName })
+		const anthropic = createAnthropic({
+			apiKey,
+			baseURL, // Pointe vers Azure AI Foundry si configuré
+		})
+
+		// Utiliser le nom de déploiement configuré ou le nom par défaut
+		const modelName = model.azureDeployment || "claude-sonnet-4-5-20241022"
+
+		log.info(`Provider Anthropic créé pour ${model.id}`, {
+			modelName,
+			baseURL: baseURL || "default",
+		})
 
 		return anthropic(modelName)
 	} catch (error) {
 		log.error(`Erreur lors de la création du provider Anthropic pour ${model.id}`, { error })
 		return null
 	}
+}
+
+/**
+ * Résout les variables d'environnement dans une chaîne
+ */
+function resolveEnvVars(value: string): string {
+	return value.replace(/\$\{([^}]+)\}/g, (_, envVar) => {
+		const envValue = process.env[envVar]
+		if (!envValue) {
+			log.warn(`Variable d'environnement manquante: ${envVar}`)
+			return value
+		}
+		return envValue
+	})
 }
 
 /**
@@ -231,10 +260,21 @@ export function validateEnterpriseModels(): {
 			valid = validation.valid
 			errors = validation.errors
 		} else if (model.provider === "anthropic") {
-			// Validation Anthropic
+			// Validation Anthropic (via Azure AI Foundry)
 			if (!process.env.ANTHROPIC_API_KEY) {
 				valid = false
 				errors.push("ANTHROPIC_API_KEY non définie")
+			}
+			if (model.azureEndpoint) {
+				const endpoint = resolveEnvVars(model.azureEndpoint)
+				if (endpoint.includes("${")) {
+					valid = false
+					errors.push(`Variable d'environnement non résolue dans azureEndpoint: ${model.azureEndpoint}`)
+				}
+			}
+			if (!model.azureDeployment) {
+				valid = false
+				errors.push("azureDeployment manquant pour modèle Anthropic via Azure AI Foundry")
 			}
 		} else {
 			valid = false

@@ -127,6 +127,16 @@ describe("Anthropic Provider Configuration", () => {
 		expect(model?.provider).toBe("anthropic")
 		expect(model?.name).toBe("Claude Sonnet")
 	})
+
+	test("Claude Sonnet devrait avoir azureEndpoint et azureDeployment (Azure AI Foundry)", () => {
+		const model = getAIModelById("claude-sonnet")
+
+		expect(model).not.toBeNull()
+		expect(model?.azureEndpoint).toBeDefined()
+		expect(model?.azureDeployment).toBeDefined()
+		expect(model?.azureEndpoint).toContain("ANTHROPIC_BASE_URL")
+		expect(model?.azureDeployment).toBe("claude-sonnet-4-5")
+	})
 })
 
 describe("Model Metadata", () => {

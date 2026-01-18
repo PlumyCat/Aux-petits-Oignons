@@ -24,7 +24,9 @@
       "name": "Claude Sonnet",
       "provider": "anthropic",
       "default": true,
-      "enabled": true
+      "enabled": true,
+      "azureEndpoint": "${ANTHROPIC_BASE_URL}",
+      "azureDeployment": "claude-sonnet-4-5"
     },
     {
       "id": "gpt-4.1-mini",

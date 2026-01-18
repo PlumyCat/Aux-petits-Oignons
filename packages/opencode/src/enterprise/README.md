@@ -57,7 +57,11 @@ La configuration est définie dans `/config/enterprise-config.json` à la racine
 
 ### Variables d'environnement requises
 
-Pour utiliser les modèles Azure OpenAI, les variables d'environnement suivantes doivent être définies :
+**Tous les modèles proviennent d'Azure AI Foundry** et nécessitent les variables d'environnement suivantes :
+
+**Pour Claude Sonnet (Anthropic via Azure AI Foundry) :**
+- `ANTHROPIC_API_KEY` : Clé API pour Anthropic
+- `ANTHROPIC_BASE_URL` : URL du endpoint Azure AI Foundry pour Anthropic (ex: `https://aux-ai-foundry.azure.com/anthropic/`)
 
 **Pour les modèles GPT (GPT-4.1 Mini, GPT-5 Mini) :**
 - `AZURE_OPENAI_ENDPOINT` : URL du endpoint Azure OpenAI (ex: `https://aux-ai-foundry.openai.azure.com/`)
@@ -66,9 +70,6 @@ Pour utiliser les modèles Azure OpenAI, les variables d'environnement suivantes
 **Pour le Model Routeur :**
 - `AZURE_AI_FOUNDRY_ENDPOINT` : URL du endpoint Azure AI Foundry
 - `AZURE_API_KEY` : Clé API Azure
-
-**Pour Claude Sonnet :**
-- `ANTHROPIC_API_KEY` : Clé API Anthropic
 
 ## Utilisation
 
@@ -237,11 +238,14 @@ bun test src/enterprise/models/__tests__/config.test.ts
 
 ## Modèles configurés
 
-### 1. Claude Sonnet (Anthropic)
+### 1. Claude Sonnet (Anthropic via Azure AI Foundry)
 - **ID:** `claude-sonnet`
 - **Provider:** Anthropic
 - **Par défaut:** Oui
-- **Variable d'environnement:** `ANTHROPIC_API_KEY`
+- **Déploiement:** `claude-sonnet-4-5`
+- **Variables d'environnement:**
+  - `ANTHROPIC_API_KEY`
+  - `ANTHROPIC_BASE_URL`
 
 ### 2. GPT-4.1 Mini (Azure OpenAI)
 - **ID:** `gpt-4.1-mini`
@@ -283,9 +287,22 @@ bun test src/enterprise/models/__tests__/config.test.ts
 
 ### "Variable d'environnement manquante"
 
-**Cause:** Une variable d'environnement requise (AZURE_OPENAI_ENDPOINT, AZURE_API_KEY, etc.) n'est pas définie.
+**Cause:** Une variable d'environnement requise (ANTHROPIC_BASE_URL, AZURE_OPENAI_ENDPOINT, AZURE_API_KEY, etc.) n'est pas définie.
 
-**Solution:** Définissez les variables d'environnement nécessaires dans votre fichier `.env` ou dans votre environnement.
+**Solution:** Définissez les variables d'environnement nécessaires dans votre fichier `.env` ou dans votre environnement :
+```bash
+# Pour Claude Sonnet
+ANTHROPIC_API_KEY=your-key
+ANTHROPIC_BASE_URL=https://your-azure-foundry.azure.com/anthropic/
+
+# Pour GPT models
+AZURE_OPENAI_ENDPOINT=https://your-endpoint.openai.azure.com/
+AZURE_API_KEY=your-key
+
+# Pour Model Routeur
+AZURE_AI_FOUNDRY_ENDPOINT=https://your-foundry.azure.com/
+AZURE_API_KEY=your-key
+```
 
 ### "Modèle Azure mal configuré"
 
