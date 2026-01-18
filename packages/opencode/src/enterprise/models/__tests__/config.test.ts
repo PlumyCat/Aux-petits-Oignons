@@ -9,6 +9,9 @@ import {
 	getDefaultAIModel,
 	getAIModelById,
 	clearConfigCache,
+	isConfigLocked,
+	assertConfigNotLocked,
+	getConfigLockInfo,
 } from "../../config/loader"
 import { validateAllAzureModels } from "../azure-provider"
 import { listEnterpriseModelsMetadata, validateEnterpriseModels } from "../index"
@@ -207,5 +210,47 @@ describe("Azure Configuration", () => {
 		expect(naming?.prefix).toBe("aux")
 		expect(naming?.separator).toBe("-")
 		expect(naming?.resourceGroupFormat).toBeDefined()
+	})
+})
+
+describe("Configuration Locking (STORY-004)", () => {
+	test("devrait indiquer que la configuration est verrouillée", () => {
+		const locked = isConfigLocked()
+
+		expect(locked).toBe(true)
+	})
+
+	test("assertConfigNotLocked devrait retourner une erreur si locked", () => {
+		const result = assertConfigNotLocked()
+
+		expect(result.allowed).toBe(false)
+		expect(result.error).toBeDefined()
+		expect(result.error).toContain("VERROUILLÉE")
+		expect(result.error).toContain("équipe technique")
+	})
+
+	test("getConfigLockInfo devrait retourner des informations sur le verrouillage", () => {
+		const info = getConfigLockInfo()
+
+		expect(info).toContain("VERROUILLÉE")
+		expect(info).toContain("naming conventions")
+		expect(info).toContain("tags obligatoires")
+		expect(info).toContain("security settings")
+		expect(info).toContain("Équipe technique")
+	})
+
+	test("la configuration doit avoir locked: true", () => {
+		const config = loadEnterpriseConfig()
+
+		expect(config).not.toBeNull()
+		expect(config?.locked).toBe(true)
+	})
+
+	test("le message d'erreur devrait guider les consultants", () => {
+		const result = assertConfigNotLocked()
+
+		expect(result.error).toContain("consultants")
+		expect(result.error).toContain("enterprise-config.json")
+		expect(result.error).toContain("contactez")
 	})
 })

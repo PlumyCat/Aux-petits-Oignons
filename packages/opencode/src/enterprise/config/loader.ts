@@ -87,6 +87,15 @@ export function loadEnterpriseConfig(): EnterpriseConfig | null {
       return null
     }
 
+    // Afficher un avertissement si la configuration est verrouillée
+    if (config.locked) {
+      log.warn("⚠️  Configuration entreprise VERROUILLÉE", {
+        projectName: config.projectName,
+        message:
+          "Cette configuration ne peut être modifiée que par l'équipe technique. Toute tentative de modification sera ignorée.",
+      })
+    }
+
     log.info("Configuration entreprise chargée avec succès", {
       projectName: config.projectName,
       modelsCount: config.aiModels.length,
@@ -154,4 +163,57 @@ export function getAzureConfig() {
  */
 export function clearConfigCache() {
   cachedConfig = null
+}
+
+/**
+ * Vérifie si une modification de la configuration est autorisée
+ * Retourne une erreur si la configuration est verrouillée
+ */
+export function assertConfigNotLocked(): {
+  allowed: boolean
+  error?: string
+} {
+  const config = loadEnterpriseConfig()
+
+  if (!config) {
+    return {
+      allowed: false,
+      error: "Configuration enterprise non disponible",
+    }
+  }
+
+  if (config.locked) {
+    return {
+      allowed: false,
+      error:
+        "⚠️  CONFIGURATION VERROUILLÉE: Cette configuration ne peut être modifiée que par l'équipe technique. " +
+        "Les consultants ne sont pas autorisés à modifier enterprise-config.json. " +
+        "Si vous avez besoin de changements, contactez l'équipe technique.",
+    }
+  }
+
+  return { allowed: true }
+}
+
+/**
+ * Retourne un message d'information sur le verrouillage
+ */
+export function getConfigLockInfo(): string {
+  const config = loadEnterpriseConfig()
+
+  if (!config) {
+    return "Configuration non disponible"
+  }
+
+  if (config.locked) {
+    return `Configuration "${config.projectName}" est VERROUILLÉE.\n\n` +
+      `Modifications interdites pour garantir:\n` +
+      `- Conformité avec les naming conventions Azure\n` +
+      `- Application des tags obligatoires\n` +
+      `- Respect des security settings\n` +
+      `- Utilisation des resource groups autorisés\n\n` +
+      `Contact: Équipe technique pour toute modification`
+  }
+
+  return `Configuration "${config.projectName}" est modifiable`
 }

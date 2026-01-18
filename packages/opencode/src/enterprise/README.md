@@ -216,6 +216,142 @@ Crée une instance de provider Azure pour un modèle.
 #### `validateAzureModel(model: EnterpriseAIModel)`
 Valide qu'un modèle Azure est correctement configuré.
 
+## Verrouillage de Configuration (STORY-004)
+
+### Vue d'ensemble
+
+Le mécanisme de verrouillage permet de protéger la configuration enterprise contre les modifications non autorisées. Quand `locked: true` est défini dans `enterprise-config.json`, la configuration devient immuable pour garantir :
+
+- **Conformité Azure** : Respect des naming conventions obligatoires
+- **Tags obligatoires** : Application systématique des tags requis
+- **Security settings** : Paramètres de sécurité non contournables
+- **Resource groups** : Utilisation exclusive des resource groups autorisés
+
+### Configuration du verrouillage
+
+Dans `/config/enterprise-config.json` :
+
+```json
+{
+  "locked": true,
+  "_comment": "Configuration verrouillée - Ne peut être modifiée que par l'équipe technique."
+}
+```
+
+### API de verrouillage
+
+#### `isConfigLocked()`
+
+Vérifie si la configuration est actuellement verrouillée.
+
+```typescript
+import { isConfigLocked } from '@/enterprise/config/loader'
+
+if (isConfigLocked()) {
+  console.log('Configuration verrouillée')
+}
+```
+
+**Retour:** `boolean`
+
+#### `assertConfigNotLocked()`
+
+Vérifie si une modification est autorisée. Utilisez cette fonction AVANT toute tentative de modification de la configuration.
+
+```typescript
+import { assertConfigNotLocked } from '@/enterprise/config/loader'
+
+const check = assertConfigNotLocked()
+if (!check.allowed) {
+  console.error('Modification refusée:', check.error)
+  // Afficher le message d'erreur à l'utilisateur
+  return
+}
+
+// Procéder avec la modification
+```
+
+**Retour:**
+```typescript
+{
+  allowed: boolean
+  error?: string  // Message explicatif si not allowed
+}
+```
+
+**Messages d'erreur:**
+- Si config non disponible : `"Configuration enterprise non disponible"`
+- Si locked : Message complet guidant les consultants vers l'équipe technique
+
+#### `getConfigLockInfo()`
+
+Récupère des informations détaillées sur l'état de verrouillage.
+
+```typescript
+import { getConfigLockInfo } from '@/enterprise/config/loader'
+
+const info = getConfigLockInfo()
+console.log(info)
+```
+
+**Retour:** `string` - Message multi-lignes avec :
+- État de verrouillage
+- Raisons du verrouillage (si locked)
+- Contact pour modifications
+
+**Exemple de sortie (si locked) :**
+```
+Configuration "Aux petits Oignons" est VERROUILLÉE.
+
+Modifications interdites pour garantir:
+- Conformité avec les naming conventions Azure
+- Application des tags obligatoires
+- Respect des security settings
+- Utilisation des resource groups autorisés
+
+Contact: Équipe technique pour toute modification
+```
+
+### Comportement au chargement
+
+Quand la configuration est verrouillée, un avertissement est automatiquement affiché dans les logs :
+
+```typescript
+log.warn("⚠️  Configuration entreprise VERROUILLÉE", {
+  projectName: config.projectName,
+  message: "Cette configuration ne peut être modifiée que par l'équipe technique."
+})
+```
+
+### Workflow de modification
+
+**Pour les consultants :**
+
+1. Vérifier si modification possible : `assertConfigNotLocked()`
+2. Si bloqué : Contacter l'équipe technique
+3. Ne PAS modifier `enterprise-config.json` directement
+
+**Pour l'équipe technique :**
+
+1. Modifier `enterprise-config.json` selon les besoins
+2. Valider les changements : `validateEnterpriseModels()`
+3. Tester avec : `bun test src/enterprise/models/__tests__/config.test.ts`
+4. Commit et push
+
+### Sécurité
+
+⚠️ **Important** : Le verrouillage est un mécanisme de protection, pas de sécurité cryptographique. Il empêche les modifications accidentelles mais ne protège pas contre les modifications malveillantes avec accès filesystem.
+
+Le verrouillage garantit :
+- ✅ Protection contre modifications UI accidentelles
+- ✅ Application cohérente des standards Azure
+- ✅ Traçabilité des changements (via git)
+
+Le verrouillage NE garantit PAS :
+- ❌ Protection contre accès filesystem direct
+- ❌ Chiffrement des données sensibles
+- ❌ Authentification/autorisation
+
 ## Tests
 
 Les tests sont situés dans `models/__tests__/config.test.ts`.
@@ -235,6 +371,7 @@ bun test src/enterprise/models/__tests__/config.test.ts
 - ✅ Configuration Anthropic
 - ✅ Validation des modèles
 - ✅ Métadonnées des modèles
+- ✅ Verrouillage de configuration (STORY-004)
 
 ## Modèles configurés
 
@@ -339,4 +476,5 @@ AZURE_API_KEY=your-key
 
 - **Tech Spec:** `/docs/tech-spec-opencode-enterprise-2026-01-18.md`
 - **Story STORY-002:** `/docs/stories/STORY-002.md`
+- **Story STORY-004:** `/docs/stories/STORY-004.md`
 - **Configuration enterprise:** `/config/enterprise-config.json`

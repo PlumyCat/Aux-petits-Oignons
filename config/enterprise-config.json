@@ -78,6 +78,6 @@
     }
   },
 
-  "locked": false,
-  "_comment": "Configuration sera verrouillée dans STORY-004 pour empêcher modifications utilisateur"
+  "locked": true,
+  "_comment": "Configuration verrouillée - Ne peut être modifiée que par l'équipe technique. Les consultants ne peuvent pas modifier ce fichier."
 }
