@@ -1,115 +1,243 @@
-<p align="center">
-  <a href="https://opencode.ai">
-    <picture>
-      <source srcset="packages/console/app/src/asset/logo-ornate-dark.svg" media="(prefers-color-scheme: dark)">
-      <source srcset="packages/console/app/src/asset/logo-ornate-light.svg" media="(prefers-color-scheme: light)">
-      <img src="packages/console/app/src/asset/logo-ornate-light.svg" alt="OpenCode logo">
-    </picture>
-  </a>
-</p>
-<p align="center">The open source AI coding agent.</p>
-<p align="center">
-  <a href="https://opencode.ai/discord"><img alt="Discord" src="https://img.shields.io/discord/1391832426048651334?style=flat-square&label=discord" /></a>
-  <a href="https://www.npmjs.com/package/opencode-ai"><img alt="npm" src="https://img.shields.io/npm/v/opencode-ai?style=flat-square" /></a>
-  <a href="https://github.com/anomalyco/opencode/actions/workflows/publish.yml"><img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/anomalyco/opencode/publish.yml?style=flat-square&branch=dev" /></a>
-</p>
+# Aux petits Oignons
 
-[![OpenCode Terminal UI](packages/web/src/assets/lander/screenshot.png)](https://opencode.ai)
+> **Outil CLI entreprise pour déploiements Azure de bots Copilot Studio**
+
+Version personnalisée d'[OpenCode](https://github.com/anomalyco/opencode) pour les consultants internes, conçue pour automatiser les déploiements d'infrastructure Azure pour Microsoft Copilot Studio.
 
 ---
 
-### Installation
+## À propos
 
-```bash
-# YOLO
-curl -fsSL https://opencode.ai/install | bash
+**Aux petits Oignons** est un fork d'OpenCode spécialement configuré pour notre équipe de consultants. Il simplifie le déploiement de bots Copilot Studio sur Azure en fournissant :
 
-# Package managers
-npm i -g opencode-ai@latest        # or bun/pnpm/yarn
-scoop install opencode             # Windows
-choco install opencode             # Windows
-brew install anomalyco/tap/opencode # macOS and Linux (recommended, always up to date)
-brew install opencode              # macOS and Linux (official brew formula, updated less)
-paru -S opencode-bin               # Arch Linux
-mise use -g opencode               # Any OS
-nix run nixpkgs#opencode           # or github:anomalyco/opencode for latest dev branch
-```
+- ✨ **4 modèles IA pré-configurés** : Claude Sonnet, GPT-4.1 Mini, GPT-5 Mini, Model Routeur
+- 🎯 **Page d'accueil personnalisée** pour consultants
+- ☁️ **Templates Azure pré-configurés** (Bicep, Azure Functions, services)
+- 🔒 **Configuration entreprise verrouillée** pour garantir la conformité
+- 🚀 **Automatisation des déploiements** via Azure SDK
 
-> [!TIP]
-> Remove versions older than 0.1.x before installing.
+### Utilisateurs cibles
 
-### Desktop App (BETA)
+Ce projet est destiné aux **5 consultants internes** :
+- Experts Power Apps & Copilot Studio
+- Débutants sur Azure (infrastructure et déploiements)
+- Besoin d'autonomie pour déployer sans dépendre de l'équipe technique
 
-OpenCode is also available as a desktop application. Download directly from the [releases page](https://github.com/anomalyco/opencode/releases) or [opencode.ai/download](https://opencode.ai/download).
+### Objectifs
 
-| Platform              | Download                              |
-| --------------------- | ------------------------------------- |
-| macOS (Apple Silicon) | `opencode-desktop-darwin-aarch64.dmg` |
-| macOS (Intel)         | `opencode-desktop-darwin-x64.dmg`     |
-| Windows               | `opencode-desktop-windows-x64.exe`    |
-| Linux                 | `.deb`, `.rpm`, or AppImage           |
-
-```bash
-# macOS (Homebrew)
-brew install --cask opencode-desktop
-# Windows (Scoop)
-scoop bucket add extras; scoop install extras/opencode-desktop
-```
-
-#### Installation Directory
-
-The install script respects the following priority order for the installation path:
-
-1. `$OPENCODE_INSTALL_DIR` - Custom installation directory
-2. `$XDG_BIN_DIR` - XDG Base Directory Specification compliant path
-3. `$HOME/bin` - Standard user binary directory (if exists or can be created)
-4. `$HOME/.opencode/bin` - Default fallback
-
-```bash
-# Examples
-OPENCODE_INSTALL_DIR=/usr/local/bin curl -fsSL https://opencode.ai/install | bash
-XDG_BIN_DIR=$HOME/.local/bin curl -fsSL https://opencode.ai/install | bash
-```
-
-### Agents
-
-OpenCode includes two built-in agents you can switch between with the `Tab` key.
-
-- **build** - Default, full access agent for development work
-- **plan** - Read-only agent for analysis and code exploration
-  - Denies file edits by default
-  - Asks permission before running bash commands
-  - Ideal for exploring unfamiliar codebases or planning changes
-
-Also, included is a **general** subagent for complex searches and multistep tasks.
-This is used internally and can be invoked using `@general` in messages.
-
-Learn more about [agents](https://opencode.ai/docs/agents).
-
-### Documentation
-
-For more info on how to configure OpenCode [**head over to our docs**](https://opencode.ai/docs).
-
-### Contributing
-
-If you're interested in contributing to OpenCode, please read our [contributing docs](./CONTRIBUTING.md) before submitting a pull request.
-
-### Building on OpenCode
-
-If you are working on a project that's related to OpenCode and is using "opencode" as a part of its name; for example, "opencode-dashboard" or "opencode-mobile", please add a note to your README to clarify that it is not built by the OpenCode team and is not affiliated with us in any way.
-
-### FAQ
-
-#### How is this different from Claude Code?
-
-It's very similar to Claude Code in terms of capability. Here are the key differences:
-
-- 100% open source
-- Not coupled to any provider. Although we recommend the models we provide through [OpenCode Zen](https://opencode.ai/zen); OpenCode can be used with Claude, OpenAI, Google or even local models. As models evolve the gaps between them will close and pricing will drop so being provider-agnostic is important.
-- Out of the box LSP support
-- A focus on TUI. OpenCode is built by neovim users and the creators of [terminal.shop](https://terminal.shop); we are going to push the limits of what's possible in the terminal.
-- A client/server architecture. This for example can allow OpenCode to run on your computer, while you can drive it remotely from a mobile app. Meaning that the TUI frontend is just one of the possible clients.
+- **90% d'autonomie** en déploiements Azure dans les 2 prochains mois
+- **Réduction du temps de déploiement** de 60 minutes → 15-20 minutes
+- **Élimination du goulot d'étranglement** technique
 
 ---
 
-**Join our community** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
+## Installation
+
+### Prérequis
+
+- **Bun 1.3.5+** installé ([Installation Bun](https://bun.sh/docs/installation))
+- **Git** configuré
+- **Abonnements Azure AI Foundry** pour les 4 modèles IA (déjà disponibles)
+- **Accès au repository** git interne
+
+### Installation locale
+
+```bash
+# Cloner le repository
+git clone <url-du-repository-interne>/aux-petits-oignons.git
+cd aux-petits-oignons
+
+# Installer les dépendances
+bun install
+
+# Lancer en mode développement
+bun run dev
+
+# Vérifier les types TypeScript
+bun run typecheck
+```
+
+### Build de production
+
+```bash
+# Build de l'application
+bun run build
+```
+
+> **Note:** Le packaging en exécutable Windows (.exe) est géré dans le projet séparé `deploy-trad-bot-container`.
+
+---
+
+## Configuration
+
+### Modèles IA disponibles
+
+Quatre modèles IA sont pré-configurés et accessibles via vos abonnements Azure AI Foundry :
+
+| Modèle | Provider | Par défaut |
+|--------|----------|------------|
+| **Claude Sonnet** | Anthropic | ✓ |
+| **GPT-4.1 Mini** | OpenAI | |
+| **GPT-5 Mini** | OpenAI | |
+| **Model Routeur** | Azure AI Foundry | |
+
+La configuration des modèles se trouve dans `/config/enterprise-config.json` et sera verrouillée pour éviter les modifications non autorisées (STORY-004).
+
+### Azure Configuration
+
+La configuration Azure inclut :
+
+- **Conventions de nommage** : Préfixe `aux-`, format standardisé
+- **Tags obligatoires** : `environment`, `project`, `owner`
+- **Région par défaut** : `francecentral`
+
+---
+
+## Utilisation
+
+### Démarrage rapide
+
+```bash
+# Lancer l'application
+bun run dev
+
+# Sélectionner un modèle IA depuis la page d'accueil
+# Utiliser les templates Azure pré-configurés
+# Suivre les étapes de déploiement guidé
+```
+
+### Templates Azure disponibles
+
+Les templates Bicep pré-configurés incluent :
+
+- Azure Functions pour bots Copilot Studio
+- Resource Groups avec tags standardisés
+- Configurations réseau et sécurité
+- Intégration avec Azure AI Foundry
+
+---
+
+## Architecture
+
+### Stack technique
+
+- **Runtime** : Bun 1.3.5
+- **Language** : TypeScript 5.8.2 (strict mode)
+- **Frontend** : SolidJS 1.9.10
+- **Backend** : Hono 4.10.7
+- **Build** : Vite 7.1.4
+- **Monorepo** : Turbo
+
+### Structure du projet
+
+```
+aux-petits-oignons/
+├── src/
+│   └── enterprise/           # Code spécifique entreprise
+│       ├── config/           # Configuration entreprise
+│       ├── models/           # Configuration modèles IA
+│       ├── azure/            # Intégration Azure
+│       └── ui/               # Composants UI personnalisés
+├── config/
+│   └── enterprise-config.json # Configuration entreprise
+├── templates/
+│   └── azure/                # Templates Bicep
+├── docs/                     # Documentation
+└── packages/                 # Packages monorepo
+```
+
+---
+
+## Développement
+
+### Scripts disponibles
+
+```bash
+bun run dev          # Mode développement
+bun run typecheck    # Vérification TypeScript
+bun run build        # Build production
+bun test             # Tests unitaires
+```
+
+### Tests
+
+```bash
+# Lancer tous les tests
+bun test
+
+# Tests avec coverage
+bun run test:coverage
+```
+
+---
+
+## Documentation
+
+- **Product Brief** : `docs/product-brief-opencode-enterprise-2026-01-18.md`
+- **Tech Spec** : `docs/tech-spec-opencode-enterprise-2026-01-18.md`
+- **Stories** : `docs/stories/`
+- **Sprint Status** : `docs/sprint-status.yaml`
+
+---
+
+## Historique du projet
+
+### Version 1.0.0 (Setup Initial - STORY-001)
+
+- ✅ Fork d'OpenCode configuré
+- ✅ Renommage en "Aux petits Oignons"
+- ✅ Structure enterprise créée
+- ✅ Configuration des 4 modèles IA
+- ✅ Build fonctionnel avec Bun
+
+### Roadmap
+
+Consultez `docs/sprint-status.yaml` pour suivre l'avancement des 9 stories planifiées :
+
+- **Sprint 1** : Setup, Configuration Multi-Modèles, Config Entreprise
+- **Sprint 2** : Page d'Accueil, Templates Azure
+- **Sprint 3** : Intégration Azure SDK
+- **Sprint 5** : Messages d'erreur, Documentation
+- **Sprint 6** : Tests avec consultants pilotes
+
+---
+
+## Support
+
+### Pour les consultants
+
+Si vous rencontrez des problèmes :
+
+1. Vérifiez la documentation dans `docs/`
+2. Consultez les stories complétées dans `docs/stories/`
+3. Contactez l'équipe technique pour support
+
+### Pour l'équipe technique
+
+- **Repository upstream** : [OpenCode](https://github.com/anomalyco/opencode)
+- **Sync avec upstream** : Mensuel ou selon besoins
+- **Issues** : Utiliser le système de tracking interne
+
+---
+
+## Crédits
+
+Ce projet est basé sur [OpenCode](https://github.com/anomalyco/opencode), un agent de codage IA open source créé par [anomalyco](https://github.com/anomalyco).
+
+**Personnalisations entreprise** :
+- Équipe de développement interne
+- Consultants pilotes (testing & feedback)
+
+---
+
+## License
+
+**Usage interne uniquement** - Ce fork est destiné exclusivement aux consultants internes et ne doit pas être redistribué.
+
+Le projet upstream OpenCode est sous licence MIT.
+
+---
+
+**Version actuelle** : 1.1.25 (basée sur OpenCode + personnalisations entreprise)
+
+**Dernière mise à jour** : 2026-01-18

@@ -283,9 +283,9 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
                     ✕
                   </text>
                 </box>
-                <text fg={theme.textMuted}>OpenCode includes free models so you can start immediately.</text>
-                <text fg={theme.textMuted}>
-                  Connect from 75+ providers to use other models, including Claude, GPT, Gemini etc
+                <text fg={theme.textMuted}>Aux petits Oignons est pré-configuré avec 4 modèles IA pour vos déploiements Azure.</text>
+<text fg={theme.textMuted}>
+                  Claude Sonnet, GPT-4.1 Mini, GPT-5 Mini, et Model Routeur sont prêts à l'emploi
                 </text>
                 <box flexDirection="row" gap={1} justifyContent="space-between">
                   <text fg={theme.text}>Connect provider</text>

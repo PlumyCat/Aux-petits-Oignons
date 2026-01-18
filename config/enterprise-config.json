@@ -1,0 +1,75 @@
+{
+  "$schema": "./enterprise-config.schema.json",
+  "version": "1.0.0",
+  "projectName": "Aux petits Oignons",
+  "description": "Configuration entreprise pour déploiements Azure de bots Copilot Studio",
+
+  "azure": {
+    "namingConventions": {
+      "prefix": "aux",
+      "separator": "-",
+      "resourceGroupFormat": "{prefix}{separator}{environment}{separator}{project}"
+    },
+    "mandatoryTags": {
+      "environment": "prod|dev|test",
+      "project": "copilot-studio",
+      "owner": "consulting-team"
+    },
+    "defaultRegion": "francecentral"
+  },
+
+  "aiModels": [
+    {
+      "id": "claude-sonnet",
+      "name": "Claude Sonnet",
+      "provider": "anthropic",
+      "default": true,
+      "enabled": true
+    },
+    {
+      "id": "gpt-4.1-mini",
+      "name": "GPT-4.1 Mini",
+      "provider": "openai",
+      "default": false,
+      "enabled": true
+    },
+    {
+      "id": "gpt-5-mini",
+      "name": "GPT-5 Mini",
+      "provider": "openai",
+      "default": false,
+      "enabled": true
+    },
+    {
+      "id": "model-routeur",
+      "name": "Model Routeur",
+      "provider": "azure-ai-foundry",
+      "default": false,
+      "enabled": true
+    }
+  ],
+
+  "deployment": {
+    "templates": {
+      "bicep": "templates/azure/",
+      "functions": "templates/functions/"
+    },
+    "defaultEnvironment": "dev"
+  },
+
+  "ui": {
+    "branding": {
+      "appName": "Aux petits Oignons",
+      "tagline": "Déploiements Azure simplifiés pour Copilot Studio"
+    },
+    "features": {
+      "welcomePage": true,
+      "modelSelection": true,
+      "azureTemplates": true,
+      "guidedDeployment": true
+    }
+  },
+
+  "locked": false,
+  "_comment": "Configuration sera verrouillée dans STORY-004 pour empêcher modifications utilisateur"
+}
