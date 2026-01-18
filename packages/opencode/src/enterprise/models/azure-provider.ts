@@ -6,7 +6,8 @@
  */
 
 import { createAzure } from "@ai-sdk/azure"
-import { loadEnterpriseConfig, EnterpriseAIModel } from "../config/loader"
+import { loadEnterpriseConfig } from "../config/loader"
+import type { EnterpriseAIModel } from "../config/loader"
 import { Log } from "@/util/log"
 
 const log = Log.create({ service: "enterprise-azure-provider" })

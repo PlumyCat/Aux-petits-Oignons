@@ -145,12 +145,13 @@ describe("Model Metadata", () => {
 		const metadata = listEnterpriseModelsMetadata()
 		const config = loadEnterpriseConfig()
 
-		expect(metadata.length).toBe(config?.aiModels.length)
+		expect(config).not.toBeNull()
+		expect(metadata.length).toBe(config!.aiModels.length)
 
 		for (let i = 0; i < metadata.length; i++) {
-			expect(metadata[i].id).toBe(config?.aiModels[i].id)
-			expect(metadata[i].name).toBe(config?.aiModels[i].name)
-			expect(metadata[i].provider).toBe(config?.aiModels[i].provider)
+			expect(metadata[i].id).toBe(config!.aiModels[i].id)
+			expect(metadata[i].name).toBe(config!.aiModels[i].name)
+			expect(metadata[i].provider).toBe(config!.aiModels[i].provider)
 		}
 	})
 })
