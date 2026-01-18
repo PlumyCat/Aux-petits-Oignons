@@ -4,6 +4,10 @@ import { useTheme } from "@tui/context/theme"
 import { useKeybind } from "@tui/context/keybind"
 import { Logo } from "../component/logo"
 import { Tips } from "../component/tips"
+import { WelcomeMessage } from "../component/welcome-message"
+import { QuickStartGuide } from "../component/quick-start-guide"
+import { CommandsList } from "../component/commands-list"
+import { ModelSelector } from "../component/model-selector"
 import { Locale } from "@/util/locale"
 import { useSync } from "../context/sync"
 import { Toast } from "../ui/toast"
@@ -93,10 +97,13 @@ export function Home() {
 
   return (
     <>
-      <box flexGrow={1} justifyContent="center" alignItems="center" paddingLeft={2} paddingRight={2} gap={1}>
-        <box height={3} />
+      <box flexGrow={1} justifyContent="flex-start" alignItems="center" paddingLeft={2} paddingRight={2} gap={1}>
+        <box height={2} />
         <Logo />
-        <box width="100%" maxWidth={75} zIndex={1000} paddingTop={1}>
+        <box height={1} />
+        <WelcomeMessage />
+        <box height={2} />
+        <box width="100%" maxWidth={75} zIndex={1000}>
           <Prompt
             ref={(r) => {
               prompt = r
@@ -105,7 +112,13 @@ export function Home() {
             hint={Hint}
           />
         </box>
-        <box height={3} width="100%" maxWidth={75} alignItems="center" paddingTop={2}>
+        <box height={2} />
+        <QuickStartGuide />
+        <box height={1} />
+        <ModelSelector />
+        <box height={1} />
+        <CommandsList />
+        <box height={2} width="100%" maxWidth={75} alignItems="center">
           <Show when={showTips()}>
             <Tips />
           </Show>
