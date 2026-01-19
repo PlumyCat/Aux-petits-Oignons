@@ -27,13 +27,6 @@ function resolveEnvVars(value: string): string {
 }
 
 /**
- * Extrait le resourceName depuis une URL Azure
- */
-function extractResourceName(url: string): string {
-	return url.replace(/^https?:\/\//, "").split(".")[0]
-}
-
-/**
  * Convertit un modèle enterprise en modèle ModelsDev
  */
 function toModelsDevModel(model: EnterpriseAIModel, providerID: string): ModelsDev.Model {
@@ -148,8 +141,9 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 		const models: Record<string, ModelsDev.Model> = {}
 		models[model.id] = toModelsDevModel(model, providerID)
 
-		// Extraire le resourceName pour la configuration Azure SDK
-		const resourceName = endpoint ? extractResourceName(endpoint) : ""
+		// Construire le baseURL pour Azure OpenAI
+		// Format attendu : https://{resource}.cognitiveservices.azure.com/openai
+		const baseURL = endpoint ? (endpoint.endsWith("/openai") ? endpoint : `${endpoint}/openai`) : ""
 
 		providers[providerID] = {
 			id: providerID,
@@ -159,17 +153,19 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 			env: [envVar], // UNE SEULE variable pour auto-connexion
 			models,
 			// Configurer les options pour Azure SDK
-			options: resourceName
+			// IMPORTANT: Utiliser baseURL car les endpoints sont sur cognitiveservices.azure.com
+			// et non sur openai.azure.com (resourceName ne fonctionne pas)
+			options: baseURL
 				? {
-						resourceName,
-						apiVersion: "2024-12-01-preview",
+						baseURL,
+						apiVersion: "2025-01-01-preview",
 				  }
 				: {},
 		}
 
 		log.debug(`Provider Azure créé: ${providerID} → ${model.name}`, {
 			endpoint,
-			resourceName,
+			baseURL,
 			envVar,
 		})
 	}
