@@ -4,9 +4,9 @@
 project_name: "OpenCode Enterprise"
 project_level: 1
 total_stories: 9
-completed_stories: 8
+completed_stories: 9
 in_progress_stories: 0
-not_started_stories: 1
+not_started_stories: 0
 
 # Sprint Planning
 current_sprint: 1
@@ -124,17 +124,21 @@ stories:
     epic: "EPIC-VALIDATION"
     priority: "Must Have"
     story_points: 5
-    status: "not_started"
-    assigned_to: "unassigned"
+    status: "completed"
+    assigned_to: "eric"
+    created_date: "2026-01-19"
+    completed_date: "2026-01-19"
     sprint: 6
+    document_path: "docs/stories/STORY-009-tests-consultants-pilotes.md"
+    actual_points: 5
 
 # Metrics
 total_story_points: 45
-completed_story_points: 40
+completed_story_points: 45
 sprint_1_points: 11
 sprint_2_points: 13
 sprint_3_points: 8
 sprint_5_points: 8
 sprint_6_points: 5
 
-last_updated: "2026-01-19T17:00:00Z"
+last_updated: "2026-01-19T18:00:00Z"
