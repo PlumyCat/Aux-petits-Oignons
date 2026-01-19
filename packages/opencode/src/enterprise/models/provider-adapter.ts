@@ -109,17 +109,25 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 	// car ils peuvent avoir des endpoints différents
 	for (const model of azureModels) {
 		const providerID = model.id // Utiliser l'ID du modèle comme ID de provider
-		const endpoint = model.azureEndpoint ? resolveEnvVars(model.azureEndpoint) : ""
 
 		// Déterminer quelle variable d'environnement de clé utiliser
+		// en analysant la variable d'environnement utilisée dans azureEndpoint
 		const envVars = []
-		if (endpoint.includes("openai")) {
+		if (model.azureEndpoint?.includes("AZURE_OPENAI_ENDPOINT")) {
+			// Modèles utilisant Azure OpenAI (GPT-4.1 Mini, GPT-5 Mini)
 			envVars.push("AZURE_OPENAI_API_KEY", "AZURE_API_KEY")
-		} else if (endpoint.includes("cognitiveservices") || endpoint.includes("foundry")) {
+		} else if (model.azureEndpoint?.includes("AZURE_AI_FOUNDRY_ENDPOINT")) {
+			// Modèles utilisant Azure AI Foundry (Model Routeur)
 			envVars.push("AZURE_API_KEY", "AZURE_OPENAI_API_KEY")
+		} else if (model.azureEndpoint?.includes("ANTHROPIC_BASE_URL")) {
+			// Modèles Anthropic (ne devrait pas arriver ici car filtrés)
+			envVars.push("ANTHROPIC_API_KEY")
 		} else {
+			// Fallback générique
 			envVars.push("AZURE_API_KEY")
 		}
+
+		const endpoint = model.azureEndpoint ? resolveEnvVars(model.azureEndpoint) : ""
 
 		const models: Record<string, ModelsDev.Model> = {}
 		models[model.id] = toModelsDevModel(model, providerID)
