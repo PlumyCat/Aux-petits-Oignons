@@ -110,28 +110,60 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 			envVar = "AZURE_API_KEY"
 		}
 
+		// Extraire le resourceName de l'URL
+		// Tous les endpoints Azure (openai.azure.com et cognitiveservices.azure.com)
+		// nécessitent un resourceName dans le SDK @ai-sdk/azure
+		// Exemple: https://votre-resource.cognitiveservices.azure.com
+		// → resourceName = "votre-resource"
+		let azureOptions: Record<string, any> = {}
+		if (endpoint) {
+			try {
+				const url = new URL(endpoint)
+				// Extraire le premier segment du hostname (resourceName)
+				const resourceName = url.hostname.split(".")[0]
+
+				if (url.hostname.includes(".openai.azure.com")) {
+					// Mode standard pour openai.azure.com
+					azureOptions = {
+						resourceName,
+						apiVersion: "2023-05-15",
+					}
+				} else if (url.hostname.includes(".cognitiveservices.azure.com")) {
+					// Mode custom pour cognitiveservices.azure.com
+					// IMPORTANT: SDK exige resourceName même avec baseURL
+					// Détecter la version d'API selon l'endpoint
+					// - models-appli-auxpetisoignons → 2023-05-15 (modèles GPT standard)
+					// - efe-mkk0vw0r-eastus2 → 2024-12-01-preview (Model Routeur Azure AI Foundry)
+					const apiVersion = resourceName.includes("efe-mkk0vw0r") 
+						? "2024-12-01-preview" 
+						: "2023-05-15"
+					
+					azureOptions = {
+						resourceName,
+						baseURL: `${endpoint}/openai`,
+						apiVersion,
+						useDeploymentBasedUrls: true,
+					}
+				} else {
+					log.warn(`Type d'endpoint Azure non reconnu: ${endpoint}`)
+				}
+			} catch (e) {
+				log.warn(`Impossible de parser l'endpoint ${endpoint}`)
+			}
+		}
+
 		const models: Record<string, ModelsDev.Model> = {}
 		models[model.id] = toModelsDevModel(model, providerID)
 
 		providers[providerID] = {
 			id: providerID,
 			name: model.name,
-			api: endpoint || "https://azure.microsoft.com",
+			// NE PAS définir 'api' pour Azure SDK - utilise resourceName ou baseURL dans options
 			npm: "@ai-sdk/azure",
 			env: [envVar], // UNE SEULE variable pour auto-connexion
 			models,
-			// Configurer les options pour Azure SDK
-			// IMPORTANT:
-			// - NE PAS ajouter /openai au baseURL (le SDK l'ajoute automatiquement)
-			// - Utiliser useDeploymentBasedUrls: true pour le format deployment-based
-			// - Format: {baseURL}/openai/deployments/{deployment}/chat/completions
-			options: endpoint
-				? {
-						baseURL: endpoint,
-						apiVersion: "2025-01-01-preview",
-						useDeploymentBasedUrls: true,
-				  }
-				: {},
+			// Options configurées selon le type d'endpoint (openai.azure.com vs cognitiveservices.azure.com)
+			options: azureOptions,
 		}
 
 		log.debug(`Provider Azure créé: ${providerID} → ${model.name}`, {

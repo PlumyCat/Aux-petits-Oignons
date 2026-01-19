@@ -902,6 +902,42 @@ export namespace Provider {
       }
     }
 
+    // Créer des custom loaders pour les providers Azure enterprise
+    // Chaque provider enterprise Azure a besoin d'un custom loader qui utilise
+    // le deployment name (depuis model.options.deployment) au lieu du model ID
+    for (const [providerID, providerData] of Object.entries(database)) {
+      // Détecter les providers Azure enterprise (créés par provider-adapter.ts)
+      // On vérifie si au moins un modèle utilise @ai-sdk/azure
+      const isAzureProvider = Object.values(providerData.models).some(m => m.api.npm === "@ai-sdk/azure")
+      if (isAzureProvider && !modelLoaders[providerID]) {
+        // Créer une map modelID → deployment name
+        const deploymentMap = new Map<string, string>()
+        
+        for (const [modelID, model] of Object.entries(providerData.models)) {
+          if (model.options?.deployment) {
+            deploymentMap.set(model.id, model.options.deployment)
+          }
+        }
+        
+        // Si au moins un modèle a un deployment name, créer un custom loader
+        if (deploymentMap.size > 0) {
+          modelLoaders[providerID] = async (sdk: any, modelID: string, options?: Record<string, any>) => {
+            // Utiliser le deployment name si disponible, sinon modelID
+            const deployment = deploymentMap.get(modelID) ?? modelID
+            
+            // Utiliser sdk.chat() par défaut pour les modèles Azure enterprise
+            // car ils utilisent l'endpoint /chat/completions (format OpenAI standard)
+            // sauf si useCompletionUrls est explicitement false
+            if (options?.["useCompletionUrls"] === false) {
+              return sdk.responses(deployment)
+            } else {
+              return sdk.chat(deployment)
+            }
+          }
+        }
+      }
+    }
+
     // load config
     for (const [providerID, provider] of configProviders) {
       const partial: Partial<Info> = { source: "config" }
@@ -979,6 +1015,7 @@ export namespace Provider {
       })
       const s = await state()
       const provider = s.providers[model.providerID]
+
       const options = { ...provider.options }
 
       if (model.api.npm.includes("@ai-sdk/openai-compatible") && options["includeUsage"] !== false) {
@@ -1045,6 +1082,7 @@ export namespace Provider {
       const bundledFn = BUNDLED_PROVIDERS[bundledKey]
       if (bundledFn) {
         log.info("using bundled provider", { providerID: model.providerID, pkg: bundledKey })
+
         const loaded = bundledFn({
           name: model.providerID,
           ...options,
