@@ -20,22 +20,22 @@
 
   "aiModels": [
     {
-      "id": "claude-sonnet",
-      "name": "Claude Sonnet",
-      "provider": "anthropic",
-      "default": true,
-      "enabled": true,
-      "azureEndpoint": "${ANTHROPIC_BASE_URL}",
-      "azureDeployment": "claude-sonnet-4-5"
-    },
-    {
       "id": "gpt-4.1-mini",
       "name": "GPT-4.1 Mini",
       "provider": "azure",
-      "default": false,
+      "default": true,
       "enabled": true,
       "azureEndpoint": "${AZURE_OPENAI_ENDPOINT}",
       "azureDeployment": "gpt-4-1-mini"
+    },
+    {
+      "id": "claude-sonnet",
+      "name": "Claude Sonnet",
+      "provider": "anthropic",
+      "default": false,
+      "enabled": true,
+      "azureEndpoint": "${ANTHROPIC_BASE_URL}",
+      "azureDeployment": "claude-sonnet-4-5"
     },
     {
       "id": "gpt-5-mini",

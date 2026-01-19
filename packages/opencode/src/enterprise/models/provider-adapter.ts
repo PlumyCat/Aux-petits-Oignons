@@ -27,6 +27,13 @@ function resolveEnvVars(value: string): string {
 }
 
 /**
+ * Extrait le resourceName depuis une URL Azure
+ */
+function extractResourceName(url: string): string {
+	return url.replace(/^https?:\/\//, "").split(".")[0]
+}
+
+/**
  * Convertit un modèle enterprise en modèle ModelsDev
  */
 function toModelsDevModel(model: EnterpriseAIModel, providerID: string): ModelsDev.Model {
@@ -88,6 +95,8 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 	const azureModels = enabledModels.filter((m) => m.provider === "azure")
 
 	// Créer le provider Anthropic si des modèles Anthropic existent
+	// IMPORTANT: Ne PAS inclure les modèles Anthropic dans l'auto-connexion
+	// pour que seul l'admin puisse les activer manuellement
 	if (anthropicModels.length > 0) {
 		const models: Record<string, ModelsDev.Model> = {}
 		for (const model of anthropicModels) {
@@ -95,13 +104,23 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 			log.debug(`Modèle Anthropic converti: ${model.id} → ${model.name}`)
 		}
 
+		const endpoint = anthropicModels[0].azureEndpoint ? resolveEnvVars(anthropicModels[0].azureEndpoint) : ""
+
 		providers.anthropic = {
 			id: "anthropic",
 			name: "Anthropic (via Azure AI Foundry)",
 			api: "https://api.anthropic.com",
 			npm: "@ai-sdk/anthropic",
-			env: ["ANTHROPIC_API_KEY"],
+			// Ne PAS mettre ANTHROPIC_API_KEY ici pour éviter l'auto-connexion
+			// L'utilisateur devra saisir la clé manuellement (réservé admin)
+			env: [],
 			models,
+			// Configurer le baseURL pour Anthropic via Azure
+			options: endpoint
+				? {
+						baseURL: endpoint,
+				  }
+				: {},
 		}
 	}
 
@@ -109,39 +128,49 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 	// car ils peuvent avoir des endpoints différents
 	for (const model of azureModels) {
 		const providerID = model.id // Utiliser l'ID du modèle comme ID de provider
+		const endpoint = model.azureEndpoint ? resolveEnvVars(model.azureEndpoint) : ""
 
-		// Déterminer quelle variable d'environnement de clé utiliser
-		// en analysant la variable d'environnement utilisée dans azureEndpoint
-		const envVars = []
+		// Déterminer LA variable d'environnement de clé à utiliser (UNE SEULE pour auto-connexion)
+		// IMPORTANT: provider.env doit contenir UNE SEULE variable pour que le système
+		// stocke automatiquement la clé dans provider.key
+		let envVar: string
 		if (model.azureEndpoint?.includes("AZURE_OPENAI_ENDPOINT")) {
 			// Modèles utilisant Azure OpenAI (GPT-4.1 Mini, GPT-5 Mini)
-			envVars.push("AZURE_OPENAI_API_KEY", "AZURE_API_KEY")
+			envVar = "AZURE_OPENAI_API_KEY"
 		} else if (model.azureEndpoint?.includes("AZURE_AI_FOUNDRY_ENDPOINT")) {
 			// Modèles utilisant Azure AI Foundry (Model Routeur)
-			envVars.push("AZURE_API_KEY", "AZURE_OPENAI_API_KEY")
-		} else if (model.azureEndpoint?.includes("ANTHROPIC_BASE_URL")) {
-			// Modèles Anthropic (ne devrait pas arriver ici car filtrés)
-			envVars.push("ANTHROPIC_API_KEY")
+			envVar = "AZURE_API_KEY"
 		} else {
 			// Fallback générique
-			envVars.push("AZURE_API_KEY")
+			envVar = "AZURE_API_KEY"
 		}
-
-		const endpoint = model.azureEndpoint ? resolveEnvVars(model.azureEndpoint) : ""
 
 		const models: Record<string, ModelsDev.Model> = {}
 		models[model.id] = toModelsDevModel(model, providerID)
+
+		// Extraire le resourceName pour la configuration Azure SDK
+		const resourceName = endpoint ? extractResourceName(endpoint) : ""
 
 		providers[providerID] = {
 			id: providerID,
 			name: model.name,
 			api: endpoint || "https://azure.microsoft.com",
 			npm: "@ai-sdk/azure",
-			env: envVars,
+			env: [envVar], // UNE SEULE variable pour auto-connexion
 			models,
+			// Configurer les options pour Azure SDK
+			options: resourceName
+				? {
+						resourceName,
+				  }
+				: {},
 		}
 
-		log.debug(`Provider Azure créé: ${providerID} → ${model.name} (${endpoint})`)
+		log.debug(`Provider Azure créé: ${providerID} → ${model.name}`, {
+			endpoint,
+			resourceName,
+			envVar,
+		})
 	}
 
 	return providers
