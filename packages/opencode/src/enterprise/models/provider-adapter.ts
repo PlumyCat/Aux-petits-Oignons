@@ -113,10 +113,6 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 		const models: Record<string, ModelsDev.Model> = {}
 		models[model.id] = toModelsDevModel(model, providerID)
 
-		// Construire le baseURL pour Azure OpenAI
-		// Format attendu : https://{resource}.cognitiveservices.azure.com/openai
-		const baseURL = endpoint ? (endpoint.endsWith("/openai") ? endpoint : `${endpoint}/openai`) : ""
-
 		providers[providerID] = {
 			id: providerID,
 			name: model.name,
@@ -125,19 +121,21 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 			env: [envVar], // UNE SEULE variable pour auto-connexion
 			models,
 			// Configurer les options pour Azure SDK
-			// IMPORTANT: Utiliser baseURL car les endpoints sont sur cognitiveservices.azure.com
-			// et non sur openai.azure.com (resourceName ne fonctionne pas)
-			options: baseURL
+			// IMPORTANT:
+			// - NE PAS ajouter /openai au baseURL (le SDK l'ajoute automatiquement)
+			// - Utiliser useDeploymentBasedUrls: true pour le format deployment-based
+			// - Format: {baseURL}/openai/deployments/{deployment}/chat/completions
+			options: endpoint
 				? {
-						baseURL,
+						baseURL: endpoint,
 						apiVersion: "2025-01-01-preview",
+						useDeploymentBasedUrls: true,
 				  }
 				: {},
 		}
 
 		log.debug(`Provider Azure créé: ${providerID} → ${model.name}`, {
 			endpoint,
-			baseURL,
 			envVar,
 		})
 	}
