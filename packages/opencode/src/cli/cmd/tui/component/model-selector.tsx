@@ -16,13 +16,13 @@ export function ModelSelector() {
     <box flexDirection="column" gap={1} width="100%" maxWidth={90}>
       <box flexDirection="row" gap={1}>
         <text fg={theme.primary} attributes={TextAttributes.BOLD}>
-          🤖 Modèles IA disponibles
+          Modeles IA disponibles
         </text>
       </box>
 
       <box flexDirection="column" gap={0} paddingLeft={2}>
         <text fg={theme.textMuted}>
-          Sélectionnez le modèle IA qui vous assistera pour vos déploiements Azure
+          Selectionnez le modele IA qui vous assistera pour vos deploiements Azure
         </text>
       </box>
 
@@ -34,12 +34,12 @@ export function ModelSelector() {
 
             return (
               <box flexDirection="row" gap={1}>
-                <text fg={isSelected() ? theme.success : theme.textMuted}>{isSelected() ? "●" : "○"}</text>
+                <text fg={isSelected() ? theme.success : theme.textMuted}>{isSelected() ? "*" : " "}</text>
                 <text fg={isSelected() ? theme.text : theme.textMuted} attributes={isSelected() ? TextAttributes.BOLD : undefined}>
                   {model.name}
                 </text>
                 <Show when={isDefault}>
-                  <text fg={theme.warning}>(défaut)</text>
+                  <text fg={theme.warning}>(defaut)</text>
                 </Show>
                 <Show when={model.provider === "azure"}>
                   <text fg={theme.info}>via Azure AI Foundry</text>
@@ -55,8 +55,7 @@ export function ModelSelector() {
 
       <box flexDirection="row" gap={1} paddingLeft={2}>
         <text fg={theme.textMuted}>
-          Utilisez <span style={{ fg: theme.primary }}>Ctrl+X M</span> ou{" "}
-          <span style={{ fg: theme.primary }}>/models</span> pour changer de modèle
+          Utilisez <span style={{ fg: theme.primary }}>/models</span> pour changer de modele
         </text>
       </box>
     </box>

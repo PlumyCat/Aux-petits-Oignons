@@ -5,27 +5,27 @@ import { For } from "solid-js"
 const QUICK_START_STEPS = [
   {
     number: "1",
-    title: "Vérifiez votre authentification Azure",
-    command: "aux init",
+    title: "Verifiez votre authentification Azure",
+    command: "az login --tenant <TENANT_ID>",
     description: "Validation des credentials et permissions",
   },
   {
     number: "2",
-    title: "Sélectionnez un modèle IA",
-    command: "Ctrl+X M",
-    description: "Choisissez parmi Claude, GPT-4.1, GPT-5 ou Model-Routeur",
+    title: "Selectionnez un modele IA",
+    command: "/models",
+    description: "Choisissez parmi Claude, GPT-4o, GPT-4.5 Preview",
   },
   {
     number: "3",
-    title: "Démarrez un déploiement",
+    title: "Demarrez un deploiement",
     command: "aux deploy",
-    description: "L'IA vous guidera pas à pas",
+    description: "L'IA vous guidera pas a pas",
   },
   {
     number: "4",
     title: "Suivez le statut",
     command: "aux status",
-    description: "Visualisez la progression en temps réel",
+    description: "Visualisez la progression en temps reel",
   },
 ]
 
@@ -36,7 +36,7 @@ export function QuickStartGuide() {
     <box flexDirection="column" gap={1} width="100%" maxWidth={90}>
       <box flexDirection="row" gap={1}>
         <text fg={theme.warning} attributes={TextAttributes.BOLD}>
-          🚀 Guide de démarrage rapide
+          Guide de demarrage rapide
         </text>
       </box>
       <box flexDirection="column" gap={1} paddingLeft={2}>

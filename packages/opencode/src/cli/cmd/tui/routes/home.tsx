@@ -6,7 +6,6 @@ import { Logo } from "../component/logo"
 import { Tips } from "../component/tips"
 import { WelcomeMessage } from "../component/welcome-message"
 import { QuickStartGuide } from "../component/quick-start-guide"
-import { CommandsList } from "../component/commands-list"
 import { ModelSelector } from "../component/model-selector"
 import { Locale } from "@/util/locale"
 import { useSync } from "../context/sync"
@@ -116,8 +115,6 @@ export function Home() {
         <QuickStartGuide />
         <box height={1} />
         <ModelSelector />
-        <box height={1} />
-        <CommandsList />
         <box height={2} width="100%" maxWidth={75} alignItems="center">
           <Show when={showTips()}>
             <Tips />
