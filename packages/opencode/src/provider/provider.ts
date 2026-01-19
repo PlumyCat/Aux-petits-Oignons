@@ -37,6 +37,8 @@ import { createPerplexity } from "@ai-sdk/perplexity"
 import { createVercel } from "@ai-sdk/vercel"
 import { createGitLab } from "@gitlab/gitlab-ai-provider"
 import { ProviderTransform } from "./transform"
+import { loadEnterpriseConfig } from "../enterprise/config/loader"
+import { getEnterpriseProviders } from "../enterprise/models/provider-adapter"
 
 export namespace Provider {
   const log = Log.create({ service: "provider" })
@@ -667,7 +669,20 @@ export namespace Provider {
   const state = Instance.state(async () => {
     using _ = log.time("state")
     const config = await Config.get()
-    const modelsDev = await ModelsDev.get()
+
+    // Vérifier si une config enterprise existe
+    const enterpriseConfig = loadEnterpriseConfig()
+    let modelsDev: Record<string, ModelsDev.Provider>
+
+    if (enterpriseConfig && enterpriseConfig.aiModels.length > 0) {
+      // Mode enterprise : utiliser uniquement les modèles de enterprise-config.json
+      log.info("Mode enterprise détecté - chargement des modèles depuis enterprise-config.json")
+      modelsDev = await getEnterpriseProviders()
+    } else {
+      // Mode standard : utiliser models.dev
+      modelsDev = await ModelsDev.get()
+    }
+
     const database = mapValues(modelsDev, fromModelsDevProvider)
 
     const disabled = new Set(config.disabled_providers ?? [])

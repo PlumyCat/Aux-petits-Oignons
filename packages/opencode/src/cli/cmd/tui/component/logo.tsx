@@ -6,7 +6,7 @@ export function Logo() {
 
   return (
     <box flexDirection="column" alignItems="center" gap={0}>
-      <text fg={theme.primary} attributes={TextAttributes.BOLD} style={{ fontSize: 2 }}>
+      <text fg={theme.primary} attributes={TextAttributes.BOLD}>
         Aux petits Oignons
       </text>
     </box>

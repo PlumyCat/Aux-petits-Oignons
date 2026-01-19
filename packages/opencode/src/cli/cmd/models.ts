@@ -5,6 +5,8 @@ import { ModelsDev } from "../../provider/models"
 import { cmd } from "./cmd"
 import { UI } from "../ui"
 import { EOL } from "os"
+import { loadEnterpriseConfig } from "../../enterprise/config/loader"
+import { getEnterpriseProviders } from "../../enterprise/models/provider-adapter"
 
 export const ModelsCommand = cmd({
   command: "models [provider]",

@@ -8,6 +8,8 @@ import { ProviderAuth } from "../../provider/auth"
 import { mapValues } from "remeda"
 import { errors } from "../error"
 import { lazy } from "../../util/lazy"
+import { getEnterpriseProviders } from "../../enterprise/models/provider-adapter"
+import { loadEnterpriseConfig } from "../../enterprise/config/loader"
 
 export const ProviderRoutes = lazy(() =>
   new Hono()
@@ -39,7 +41,18 @@ export const ProviderRoutes = lazy(() =>
         const disabled = new Set(config.disabled_providers ?? [])
         const enabled = config.enabled_providers ? new Set(config.enabled_providers) : undefined
 
-        const allProviders = await ModelsDev.get()
+        // Vérifier si une config enterprise existe
+        const enterpriseConfig = loadEnterpriseConfig()
+        let allProviders: Record<string, ModelsDev.Provider>
+
+        if (enterpriseConfig && enterpriseConfig.aiModels.length > 0) {
+          // Mode enterprise : utiliser uniquement les modèles de enterprise-config.json
+          allProviders = await getEnterpriseProviders()
+        } else {
+          // Mode standard : utiliser models.dev
+          allProviders = await ModelsDev.get()
+        }
+
         const filteredProviders: Record<string, (typeof allProviders)[string]> = {}
         for (const [key, value] of Object.entries(allProviders)) {
           if ((enabled ? enabled.has(key) : true) && !disabled.has(key)) {
