@@ -661,7 +661,7 @@ export namespace Provider {
       source: "custom",
       name: provider.name,
       env: provider.env ?? [],
-      options: {},
+      options: provider.options ?? {},
       models: mapValues(provider.models, (model) => fromModelsDevModel(provider, model)),
     }
   }

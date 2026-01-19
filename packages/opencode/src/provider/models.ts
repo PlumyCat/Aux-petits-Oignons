@@ -72,6 +72,7 @@ export namespace ModelsDev {
     id: z.string(),
     npm: z.string().optional(),
     models: z.record(z.string(), Model),
+    options: z.record(z.string(), z.any()).optional(),
   })
 
   export type Provider = z.infer<typeof Provider>
