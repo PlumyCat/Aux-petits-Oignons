@@ -87,36 +87,8 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 	const anthropicModels = enabledModels.filter((m) => m.provider === "anthropic")
 	const azureModels = enabledModels.filter((m) => m.provider === "azure")
 
-	// Créer le provider Anthropic si des modèles Anthropic existent
-	// IMPORTANT: Ne PAS inclure les modèles Anthropic dans l'auto-connexion
-	// pour que seul l'admin puisse les activer manuellement
-	if (anthropicModels.length > 0) {
-		const models: Record<string, ModelsDev.Model> = {}
-		for (const model of anthropicModels) {
-			models[model.id] = toModelsDevModel(model, "anthropic")
-			log.debug(`Modèle Anthropic converti: ${model.id} → ${model.name}`)
-		}
-
-		const endpoint = anthropicModels[0].azureEndpoint ? resolveEnvVars(anthropicModels[0].azureEndpoint) : ""
-
-		providers.anthropic = {
-			id: "anthropic",
-			name: "Anthropic (via Azure AI Foundry)",
-			api: "https://api.anthropic.com",
-			npm: "@ai-sdk/anthropic",
-			// Ne PAS mettre ANTHROPIC_API_KEY ici pour éviter l'auto-connexion
-			// L'utilisateur devra saisir la clé manuellement (réservé admin)
-			env: [],
-			models,
-			// Configurer le baseURL pour Anthropic via Azure
-			options: endpoint
-				? {
-						baseURL: endpoint,
-				  }
-				: {},
-		}
-	}
-
+	// IMPORTANT: Créer les providers Azure EN PREMIER car le système prend
+	// le premier provider de la liste comme défaut
 	// Créer un provider SÉPARÉ pour CHAQUE modèle Azure
 	// car ils peuvent avoir des endpoints différents
 	for (const model of azureModels) {
@@ -168,6 +140,36 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 			baseURL,
 			envVar,
 		})
+	}
+
+	// Créer le provider Anthropic EN DERNIER si des modèles Anthropic existent
+	// IMPORTANT: Ne PAS inclure les modèles Anthropic dans l'auto-connexion
+	// pour que seul l'admin puisse les activer manuellement
+	if (anthropicModels.length > 0) {
+		const models: Record<string, ModelsDev.Model> = {}
+		for (const model of anthropicModels) {
+			models[model.id] = toModelsDevModel(model, "anthropic")
+			log.debug(`Modèle Anthropic converti: ${model.id} → ${model.name}`)
+		}
+
+		const endpoint = anthropicModels[0].azureEndpoint ? resolveEnvVars(anthropicModels[0].azureEndpoint) : ""
+
+		providers.anthropic = {
+			id: "anthropic",
+			name: "Anthropic (via Azure AI Foundry)",
+			api: "https://api.anthropic.com",
+			npm: "@ai-sdk/anthropic",
+			// Ne PAS mettre ANTHROPIC_API_KEY ici pour éviter l'auto-connexion
+			// L'utilisateur devra saisir la clé manuellement (réservé admin)
+			env: [],
+			models,
+			// Configurer le baseURL pour Anthropic via Azure
+			options: endpoint
+				? {
+						baseURL: endpoint,
+				  }
+				: {},
+		}
 	}
 
 	return providers
