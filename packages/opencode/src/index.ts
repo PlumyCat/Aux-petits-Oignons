@@ -26,6 +26,8 @@ import { EOL } from "os"
 import { WebCommand } from "./cli/cmd/web"
 import { PrCommand } from "./cli/cmd/pr"
 import { SessionCommand } from "./cli/cmd/session"
+import { AzureDeployCommand } from "./cli/cmd/azure-deploy"
+import { AzureStatusCommand } from "./cli/cmd/azure-status"
 
 process.on("unhandledRejection", (e) => {
   Log.Default.error("rejection", {
@@ -97,6 +99,8 @@ const cli = yargs(hideBin(process.argv))
   .command(GithubCommand)
   .command(PrCommand)
   .command(SessionCommand)
+  .command(AzureDeployCommand)
+  .command(AzureStatusCommand)
   .fail((msg, err) => {
     if (
       msg?.startsWith("Unknown argument") ||
