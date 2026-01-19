@@ -1,0 +1,172 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.37.4.10188",
+      "templateHash": "3882000114379888360"
+    }
+  },
+  "parameters": {
+    "keyVaultName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Key Vault instance"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for Key Vault"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Tags to apply to Key Vault"
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "standard",
+      "allowedValues": [
+        "standard",
+        "premium"
+      ],
+      "metadata": {
+        "description": "SKU name for Key Vault"
+      }
+    },
+    "enableSoftDelete": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable soft delete"
+      }
+    },
+    "softDeleteRetentionInDays": {
+      "type": "int",
+      "defaultValue": 90,
+      "minValue": 7,
+      "maxValue": 90,
+      "metadata": {
+        "description": "Soft delete retention in days"
+      }
+    },
+    "enablePurgeProtection": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable purge protection"
+      }
+    },
+    "enableRbacAuthorization": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable RBAC authorization"
+      }
+    },
+    "tenantId": {
+      "type": "string",
+      "defaultValue": "[subscription().tenantId]",
+      "metadata": {
+        "description": "Tenant ID for Key Vault"
+      }
+    },
+    "principalId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Object ID of the service principal or user to grant access"
+      }
+    },
+    "networkAclsDefaultAction": {
+      "type": "string",
+      "defaultValue": "Allow",
+      "allowedValues": [
+        "Allow",
+        "Deny"
+      ],
+      "metadata": {
+        "description": "Network ACLs default action"
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2023-07-01",
+      "name": "[parameters('keyVaultName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "[parameters('skuName')]"
+        },
+        "tenantId": "[parameters('tenantId')]",
+        "enableSoftDelete": "[parameters('enableSoftDelete')]",
+        "softDeleteRetentionInDays": "[parameters('softDeleteRetentionInDays')]",
+        "enablePurgeProtection": "[parameters('enablePurgeProtection')]",
+        "enableRbacAuthorization": "[parameters('enableRbacAuthorization')]",
+        "publicNetworkAccess": "Enabled",
+        "networkAcls": {
+          "bypass": "AzureServices",
+          "defaultAction": "[parameters('networkAclsDefaultAction')]",
+          "ipRules": [],
+          "virtualNetworkRules": []
+        }
+      }
+    },
+    {
+      "condition": "[and(not(parameters('enableRbacAuthorization')), not(empty(parameters('principalId'))))]",
+      "type": "Microsoft.KeyVault/vaults/accessPolicies",
+      "apiVersion": "2023-07-01",
+      "name": "[format('{0}/{1}', parameters('keyVaultName'), 'add')]",
+      "properties": {
+        "accessPolicies": [
+          {
+            "tenantId": "[parameters('tenantId')]",
+            "objectId": "[parameters('principalId')]",
+            "permissions": {
+              "keys": [
+                "get",
+                "list"
+              ],
+              "secrets": [
+                "get",
+                "list",
+                "set"
+              ],
+              "certificates": [
+                "get",
+                "list"
+              ]
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "keyVaultId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+    },
+    "keyVaultName": {
+      "type": "string",
+      "value": "[parameters('keyVaultName')]"
+    },
+    "keyVaultUri": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '2023-07-01').vaultUri]"
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "dev"
+    },
+    "applicationName": {
+      "value": "myapp"
+    },
+    "runtime": {
+      "value": "node"
+    },
+    "runtimeVersion": {
+      "value": "20"
+    },
+    "functionAppSku": {
+      "value": "Y1"
+    },
+    "deployKeyVault": {
+      "value": true
+    },
+    "storageSku": {
+      "value": "Standard_LRS"
+    },
+    "appInsightsRetention": {
+      "value": 30
+    }
+  }
+}

@@ -4,9 +4,9 @@
 project_name: "OpenCode Enterprise"
 project_level: 1
 total_stories: 9
-completed_stories: 2
+completed_stories: 5
 in_progress_stories: 0
-not_started_stories: 7
+not_started_stories: 4
 
 # Sprint Planning
 current_sprint: 1
@@ -46,27 +46,39 @@ stories:
     epic: "EPIC-UI"
     priority: "Must Have"
     story_points: 5
-    status: "not_started"
-    assigned_to: "unassigned"
+    status: "completed"
+    assigned_to: "eric"
+    created_date: "2026-01-18"
+    completed_date: "2026-01-18"
     sprint: 2
+    document_path: "docs/stories/STORY-003.md"
+    actual_points: 5
 
   - id: "STORY-004"
     title: "Configuration Entreprise Verrouillée"
     epic: "EPIC-FOUNDATION"
     priority: "Must Have"
     story_points: 3
-    status: "not_started"
-    assigned_to: "unassigned"
+    status: "completed"
+    assigned_to: "eric"
+    created_date: "2026-01-18"
+    completed_date: "2026-01-18"
     sprint: 1
+    document_path: "docs/stories/STORY-004.md"
+    actual_points: 3
 
   - id: "STORY-005"
     title: "Templates de Déploiement Azure"
     epic: "EPIC-AZURE"
     priority: "Must Have"
     story_points: 8
-    status: "not_started"
-    assigned_to: "unassigned"
+    status: "completed"
+    assigned_to: "eric"
+    created_date: "2026-01-18"
+    completed_date: "2026-01-18"
     sprint: 2
+    document_path: "docs/stories/STORY-005.md"
+    actual_points: 8
 
   - id: "STORY-006"
     title: "Intégration Azure SDK et Automatisation"
@@ -106,11 +118,11 @@ stories:
 
 # Metrics
 total_story_points: 45
-completed_story_points: 8
+completed_story_points: 24
 sprint_1_points: 11
 sprint_2_points: 13
 sprint_3_points: 8
 sprint_5_points: 8
 sprint_6_points: 5
 
-last_updated: "2026-01-18T19:30:00Z"
+last_updated: "2026-01-18T20:30:00Z"
