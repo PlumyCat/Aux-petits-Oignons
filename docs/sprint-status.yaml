@@ -4,9 +4,9 @@
 project_name: "OpenCode Enterprise"
 project_level: 1
 total_stories: 9
-completed_stories: 6
+completed_stories: 7
 in_progress_stories: 0
-not_started_stories: 3
+not_started_stories: 2
 
 # Sprint Planning
 current_sprint: 1
@@ -98,9 +98,13 @@ stories:
     epic: "EPIC-UX"
     priority: "Should Have"
     story_points: 5
-    status: "not_started"
-    assigned_to: "unassigned"
+    status: "completed"
+    assigned_to: "eric"
+    created_date: "2026-01-19"
+    completed_date: "2026-01-19"
     sprint: 5
+    document_path: "docs/stories/STORY-007-messages-erreur-guidance.md"
+    actual_points: 5
 
   - id: "STORY-008"
     title: "Documentation Utilisateur Intégrée"
@@ -122,11 +126,11 @@ stories:
 
 # Metrics
 total_story_points: 45
-completed_story_points: 32
+completed_story_points: 37
 sprint_1_points: 11
 sprint_2_points: 13
 sprint_3_points: 8
 sprint_5_points: 8
 sprint_6_points: 5
 
-last_updated: "2026-01-19T15:00:00Z"
+last_updated: "2026-01-19T16:30:00Z"

@@ -10,6 +10,7 @@ import { AzureDeployment } from "../../azure/deployment"
 import { AzureAuth } from "../../azure/auth"
 import { AzurePermissions } from "../../azure/permissions"
 import { AzureLogger } from "../../azure/logger"
+import { ErrorAnalyzer } from "../../azure/error-analyzer"
 import { resolve, join } from "path"
 import { existsSync } from "fs"
 
@@ -193,10 +194,28 @@ export const AzureDeployCommand = cmd({
       AzureLogger.success("Déploiement terminé avec succès!")
       UI.println("")
     } catch (error) {
-      AzureLogger.error(`Erreur lors du déploiement: ${(error as Error).message}`)
-      if (args.verbose) {
-        console.error(error)
+      const err = error as Error
+
+      // Analyser l'erreur avec ErrorAnalyzer
+      const analysis = ErrorAnalyzer.analyze(err)
+
+      // Afficher l'analyse d'erreur complète
+      UI.println("")
+      UI.println(UI.Style.TEXT_DANGER_BOLD + "╔════════════════════════════════════════╗" + UI.Style.TEXT_NORMAL)
+      UI.println(UI.Style.TEXT_DANGER_BOLD + "║  Erreur lors du déploiement            ║" + UI.Style.TEXT_NORMAL)
+      UI.println(UI.Style.TEXT_DANGER_BOLD + "╚════════════════════════════════════════╝" + UI.Style.TEXT_NORMAL)
+      UI.println("")
+
+      // Afficher le rapport formaté
+      console.error(ErrorAnalyzer.formatReport(analysis, args.verbose || false))
+
+      // Vérifier si l'erreur est récupérable
+      if (ErrorAnalyzer.isRecoverable(err)) {
+        const retryDelay = ErrorAnalyzer.getRetryDelay(err)
+        UI.println(UI.Style.TEXT_WARNING + `💡 Cette erreur peut être temporaire. Vous pouvez réessayer dans ${retryDelay / 1000}s.` + UI.Style.TEXT_NORMAL)
+        UI.println("")
       }
+
       process.exit(1)
     }
   },

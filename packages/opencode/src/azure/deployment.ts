@@ -6,6 +6,7 @@
 import { ResourceManagementClient } from "@azure/arm-resources"
 import { AzureAuth } from "./auth"
 import { AzureLogger } from "./logger"
+import { ErrorAnalyzer } from "./error-analyzer"
 import { readFile } from "fs/promises"
 import { resolve, join } from "path"
 import { exec } from "child_process"
@@ -168,8 +169,16 @@ export class AzureDeployment {
       const duration = Date.now() - startTime
       const err = error as Error
 
-      const suggestions = this.getErrorSuggestions(err)
-      AzureLogger.printErrorSummary(err, suggestions)
+      // Analyser l'erreur avec ErrorAnalyzer
+      const analysis = ErrorAnalyzer.analyze(err)
+
+      // Afficher l'analyse formatée
+      AzureLogger.error("Échec du déploiement")
+      if (options.verbose) {
+        console.error("\n" + ErrorAnalyzer.formatReport(analysis, true))
+      } else {
+        AzureLogger.printErrorSummary(err, analysis.suggestions)
+      }
 
       return {
         success: false,
@@ -233,44 +242,4 @@ export class AzureDeployment {
     }
   }
 
-  /**
-   * Get error suggestions based on error message
-   */
-  private static getErrorSuggestions(error: Error): string[] {
-    const message = error.message.toLowerCase()
-    const suggestions: string[] = []
-
-    if (message.includes("not logged in") || message.includes("authentication")) {
-      suggestions.push("Exécutez 'az login' pour vous connecter à Azure")
-      suggestions.push("Vérifiez que vous avez sélectionné le bon abonnement avec 'az account set'")
-    }
-
-    if (message.includes("permission") || message.includes("unauthorized")) {
-      suggestions.push("Vérifiez que vous avez les permissions nécessaires sur le resource group")
-      suggestions.push("Vous devez avoir au minimum le rôle 'Contributor'")
-      suggestions.push("Contactez votre administrateur Azure pour obtenir les permissions")
-    }
-
-    if (message.includes("quota") || message.includes("limit")) {
-      suggestions.push("Vérifiez les quotas de votre abonnement Azure")
-      suggestions.push("Vous devrez peut-être demander une augmentation de quota")
-    }
-
-    if (message.includes("exists") || message.includes("conflict")) {
-      suggestions.push("Une ressource avec ce nom existe déjà")
-      suggestions.push("Choisissez un nom différent ou supprimez la ressource existante")
-    }
-
-    if (message.includes("bicep") || message.includes("template")) {
-      suggestions.push("Vérifiez la syntaxe de votre template Bicep")
-      suggestions.push("Exécutez 'az bicep build' pour vérifier le template")
-    }
-
-    if (suggestions.length === 0) {
-      suggestions.push("Vérifiez les logs d'erreur ci-dessus pour plus de détails")
-      suggestions.push("Consultez la documentation Azure pour ce type d'erreur")
-    }
-
-    return suggestions
-  }
 }

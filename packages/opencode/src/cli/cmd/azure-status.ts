@@ -9,6 +9,7 @@ import { UI } from "../ui"
 import { AzureDeployment } from "../../azure/deployment"
 import { AzureAuth } from "../../azure/auth"
 import { AzureLogger } from "../../azure/logger"
+import { ErrorAnalyzer } from "../../azure/error-analyzer"
 
 export const AzureStatusCommand = cmd({
   command: "aux status [resource-group]",
@@ -155,10 +156,19 @@ export const AzureStatusCommand = cmd({
       UI.println(UI.Style.TEXT_SUCCESS + `Total: ${resources.length} ressources` + UI.Style.TEXT_NORMAL)
       UI.println("")
     } catch (error) {
-      AzureLogger.error(`Erreur: ${(error as Error).message}`)
-      if (args.verbose) {
-        console.error(error)
-      }
+      const err = error as Error
+
+      // Analyser l'erreur avec ErrorAnalyzer
+      const analysis = ErrorAnalyzer.analyze(err)
+
+      // Afficher l'analyse d'erreur
+      UI.println("")
+      UI.println(UI.Style.TEXT_DANGER + "✗ Erreur lors de la récupération du statut" + UI.Style.TEXT_NORMAL)
+      UI.println("")
+
+      // Afficher le rapport formaté
+      console.error(ErrorAnalyzer.formatReport(analysis, args.verbose || false))
+
       process.exit(1)
     }
   },
