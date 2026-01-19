@@ -162,6 +162,7 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 			options: resourceName
 				? {
 						resourceName,
+						apiVersion: "2024-12-01-preview",
 				  }
 				: {},
 		}

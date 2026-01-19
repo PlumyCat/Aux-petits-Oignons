@@ -26,7 +26,7 @@
       "default": true,
       "enabled": true,
       "azureEndpoint": "${AZURE_OPENAI_ENDPOINT}",
-      "azureDeployment": "gpt-4-1-mini"
+      "azureDeployment": "gpt-4.1-mini"
     },
     {
       "id": "claude-sonnet",
