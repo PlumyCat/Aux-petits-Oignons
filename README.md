@@ -74,14 +74,14 @@ bun run build
 
 Quatre modèles IA sont pré-configurés et accessibles via vos abonnements Azure AI Foundry :
 
-| Modèle | Provider | Par défaut |
-|--------|----------|------------|
-| **Claude Sonnet** | Anthropic | ✓ |
-| **GPT-4.1 Mini** | OpenAI | |
-| **GPT-5 Mini** | OpenAI | |
-| **Model Routeur** | Azure AI Foundry | |
+| Modèle | Provider | Par défaut | Statut |
+|--------|----------|------------|--------|
+| **GPT-4.1 Mini** | Azure OpenAI | ✓ | ✅ Activé |
+| **GPT-5 Mini** | Azure OpenAI | | ✅ Activé |
+| **Model Routeur** | Azure AI Foundry | | ✅ Activé |
+| **Claude Sonnet** | Azure AI Foundry (Anthropic) | | 🔒 Réservé admin |
 
-La configuration des modèles se trouve dans `/config/enterprise-config.json` et sera verrouillée pour éviter les modifications non autorisées (STORY-004).
+La configuration des modèles se trouve dans `/config/enterprise-config.json` et est **verrouillée** pour éviter les modifications non autorisées.
 
 ### Azure Configuration
 
@@ -90,6 +90,58 @@ La configuration Azure inclut :
 - **Conventions de nommage** : Préfixe `aux-`, format standardisé
 - **Tags obligatoires** : `environment`, `project`, `owner`
 - **Région par défaut** : `francecentral`
+
+### Configuration technique des modèles IA
+
+#### Variables d'environnement requises
+
+Créez un fichier `.env` à la racine du projet avec les clés API Azure :
+
+```bash
+# Azure OpenAI (GPT-4.1 Mini, GPT-5 Mini)
+AZURE_OPENAI_ENDPOINT=https://votre-resource-openai.cognitiveservices.azure.com
+AZURE_OPENAI_API_KEY=votre_clé_api_azure_openai
+
+# Azure AI Foundry (Model Routeur)
+AZURE_AI_FOUNDRY_ENDPOINT=https://votre-resource-foundry.cognitiveservices.azure.com
+AZURE_API_KEY=votre_clé_api_ai_foundry
+
+# Claude Sonnet (optionnel, réservé admin)
+ANTHROPIC_BASE_URL=https://votre-resource-anthropic.services.ai.azure.com/anthropic/v1
+ANTHROPIC_API_KEY=votre_clé_api_anthropic
+```
+
+> 🔐 **Sécurité** : Le fichier `.env` est dans `.gitignore` et ne doit JAMAIS être commité. Les clés API sont fournies par l'équipe technique.
+
+#### Fonctionnement interne
+
+Le système charge automatiquement les configurations Azure au démarrage :
+
+1. **Chargement de la config** : `enterprise-config.json` définit les 4 modèles autorisés
+2. **Provider adapters** : Chaque modèle devient un provider Azure séparé avec son propre endpoint
+3. **Custom loaders** : Gèrent automatiquement le mapping entre IDs de modèles et noms de déploiements Azure
+4. **Auto-connexion** : Les clés du `.env` sont chargées automatiquement (pas de saisie manuelle)
+
+#### API Versions Azure
+
+Les modèles utilisent des API versions différentes selon leur endpoint :
+
+| Type de ressource | Modèles | API Version |
+|----------|---------|-------------|
+| Azure OpenAI | GPT-4.1 Mini, GPT-5 Mini | `2023-05-15` |
+| Azure AI Foundry | Model Routeur | `2024-12-01-preview` |
+| Azure AI Foundry (Anthropic) | Claude Sonnet | Variable |
+
+#### Deployment Mapping
+
+Les IDs de modèles sont automatiquement mappés vers les noms de déploiements Azure :
+
+- `model-routeur` (ID) → `model-router` (deployment Azure)
+- `gpt-4.1-mini` (ID) → `gpt-4.1-mini` (deployment Azure)
+- `gpt-5-mini` (ID) → `gpt-5-mini` (deployment Azure)
+- `claude-sonnet` (ID) → `claude-sonnet-4-5-v2@20250514` (deployment Azure)
+
+Ce mapping est géré par des **custom loaders** qui interceptent les appels au SDK Azure.
 
 ---
 
@@ -202,6 +254,81 @@ Consultez `docs/sprint-status.yaml` pour suivre l'avancement des 9 stories plani
 
 ---
 
+## Dépannage
+
+### Problèmes courants
+
+#### ❌ Les modèles ne se connectent pas
+
+**Symptôme** : Les modèles n'apparaissent pas ou affichent "Not connected"
+
+**Solutions** :
+1. Vérifier que le fichier `.env` existe à la racine du projet
+2. Vérifier que toutes les clés API sont présentes et valides
+3. Redémarrer l'application : `bun run dev`
+4. Vérifier les logs dans `~/.local/share/opencode/log/dev.log`
+
+#### ❌ Erreur "deployment does not exist"
+
+**Symptôme** : Le Model Routeur affiche cette erreur lors de l'envoi d'un message
+
+**Solutions** :
+- Vérifier que le nom de déploiement Azure est `model-router` (sans 'u')
+- Le mapping automatique doit être : `model-routeur` → `model-router`
+- Vérifier les logs pour confirmer que le custom loader est actif
+
+#### ❌ Erreur "API version not supported"
+
+**Symptôme** : Erreur lors de l'utilisation d'un modèle Azure
+
+**Solutions** :
+- Les API versions sont gérées automatiquement par endpoint
+- Vérifier que les endpoints dans `.env` sont corrects et correspondent aux ressources Azure
+- GPT models doivent utiliser votre endpoint Azure OpenAI (`cognitiveservices.azure.com`)
+- Model Routeur doit utiliser votre endpoint Azure AI Foundry
+
+#### ❌ Erreur "Resource name setting is missing"
+
+**Symptôme** : Le SDK Azure ne trouve pas le `resourceName`
+
+**Solutions** :
+- Cette erreur est normalement gérée automatiquement
+- Le `resourceName` est extrait de l'URL de l'endpoint
+- Vérifier que `AZURE_OPENAI_ENDPOINT` et `AZURE_AI_FOUNDRY_ENDPOINT` sont bien définis
+
+#### 🔍 Tester la connectivité Azure manuellement
+
+Pour vérifier que vos clés API fonctionnent :
+
+```bash
+# Test GPT-4.1 Mini
+curl -H "api-key: VOTRE_CLE_OPENAI" \
+  "https://votre-resource-openai.cognitiveservices.azure.com/openai/deployments/gpt-4.1-mini/chat/completions?api-version=2023-05-15" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"test"}]}'
+
+# Test Model Routeur
+curl -H "api-key: VOTRE_CLE_AI_FOUNDRY" \
+  "https://votre-resource-foundry.cognitiveservices.azure.com/openai/deployments/model-router/chat/completions?api-version=2024-12-01-preview" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"test"}]}'
+```
+
+#### 📋 Voir les logs détaillés
+
+```bash
+# Logs en temps réel
+tail -f ~/.local/share/opencode/log/dev.log
+
+# Logs avec filtrage
+tail -100 ~/.local/share/opencode/log/dev.log | grep -E "(Custom loader|error|deployment)"
+
+# Voir les URLs générées
+tail -100 ~/.local/share/opencode/log/dev.log | grep -oP '"url":"[^"]*"'
+```
+
+---
+
 ## Support
 
 ### Pour les consultants
@@ -238,6 +365,14 @@ Le projet upstream OpenCode est sous licence MIT.
 
 ---
 
-**Version actuelle** : 1.1.25 (basée sur OpenCode + personnalisations entreprise)
+**Version actuelle** : 1.2.0 (basée sur OpenCode + personnalisations entreprise)
 
-**Dernière mise à jour** : 2026-01-18
+**Dernière mise à jour** : 2026-01-19
+
+**Changements v1.2.0** :
+- ✅ Configuration Azure complète fonctionnelle (GPT-4.1 Mini, GPT-5 Mini, Model Routeur)
+- ✅ Custom loaders pour mapping automatique des deployments Azure
+- ✅ Auto-connexion via fichier `.env`
+- ✅ API versions différenciées par endpoint
+- ✅ GPT-4.1 Mini défini comme modèle par défaut
+- ✅ Documentation technique complète
