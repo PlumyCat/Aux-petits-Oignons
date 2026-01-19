@@ -5,7 +5,6 @@ import { useKeybind } from "@tui/context/keybind"
 import { Logo } from "../component/logo"
 import { Tips } from "../component/tips"
 import { WelcomeMessage } from "../component/welcome-message"
-import { QuickStartGuide } from "../component/quick-start-guide"
 import { ModelSelector } from "../component/model-selector"
 import { Locale } from "@/util/locale"
 import { useSync } from "../context/sync"
@@ -112,8 +111,6 @@ export function Home() {
           />
         </box>
         <box height={2} />
-        <QuickStartGuide />
-        <box height={1} />
         <ModelSelector />
         <box height={2} width="100%" maxWidth={75} alignItems="center">
           <Show when={showTips()}>
