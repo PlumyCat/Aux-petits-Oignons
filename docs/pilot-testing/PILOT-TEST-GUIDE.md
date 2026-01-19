@@ -54,6 +54,7 @@ Valider OpenCode Enterprise "Aux petits Oignons" avec 1-2 consultants pilotes av
    - Installation d'OpenCode via npm/bun
    - Vérification des prérequis (Azure CLI, Node.js)
    - Configuration de base (authentication Azure)
+   - **Important:** Pour comptes délégués, utiliser `az login --tenant <TENANT_ID>`
    - Premier `opencode aux help quickstart`
 
 3. **Démonstration guidée** (30 min)

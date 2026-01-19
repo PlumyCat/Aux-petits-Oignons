@@ -47,12 +47,14 @@ Cette checklist doit être complétée par le consultant pilote et le développe
 
 | Critère | Status | Notes |
 |---------|--------|-------|
-| `az login` réussi | ☐ | |
+| `az login --tenant <TENANT_ID>` réussi (comptes délégués) | ☐ | |
+| `az login` réussi (comptes directs) | ☐ | |
 | Liste des subscriptions visible (`az account list`) | ☐ | |
+| Subscription correcte trouvée dans la liste | ☐ | |
 | Subscription sélectionnée correctement | ☐ | |
 | Messages d'erreur clairs si non authentifié | ☐ | |
 
-**Score Section 1 :** _____ / 15
+**Score Section 1 :** _____ / 17
 
 ---
 
@@ -313,16 +315,16 @@ Cette checklist doit être complétée par le consultant pilote et le développe
 
 | Section | Score | Pourcentage | Seuil | Status |
 |---------|-------|-------------|-------|--------|
-| 1. Installation et Configuration | ___ / 15 | ___% | 80% | ☐ |
+| 1. Installation et Configuration | ___ / 17 | ___% | 80% | ☐ |
 | 2. Déploiements Azure | ___ / 21 | ___% | 85% | ☐ |
 | 3. Documentation et Aide | ___ / 25 | ___% | 80% | ☐ |
 | 4. Messages d'Erreur | ___ / 15 | ___% | 85% | ☐ |
 | 5. Expérience Utilisateur | ___ / 16 | ___% | 80% | ☐ |
 | 6. Formation et Support | ___ / 9 | ___% | 80% | ☐ |
 
-**Score Total :** _____ / 101 = _____%
+**Score Total :** _____ / 103 = _____%
 
-**Seuil de Validation :** 82% (83/101 critères validés)
+**Seuil de Validation :** 82% (85/103 critères validés)
 
 ### Net Promoter Score
 
@@ -343,13 +345,14 @@ _________________________________________________________________
 
 ### Critères Obligatoires (Tous doivent être ✅)
 
-- [ ] Score global ≥ 82% (83/101)
+- [ ] Score global ≥ 82% (85/103)
 - [ ] Net Promoter Score ≥ 8/10
 - [ ] Tous les bugs P0 corrigés
 - [ ] Au moins 80% bugs P1 corrigés
 - [ ] Au moins 2 déploiements réussis (dev + staging)
 - [ ] Consultant autonome pour déploiements standards
 - [ ] Documentation suffisante pour résolution autonome
+- [ ] Authentication avec tenant correcte (comptes délégués)
 
 ### Décision Finale
 
