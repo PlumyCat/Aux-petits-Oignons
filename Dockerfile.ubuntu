@@ -1,0 +1,142 @@
+# =============================================================================
+# OpenCode Enterprise - Ubuntu Docker Image
+# =============================================================================
+# Multi-stage build for minimal final image size
+#
+# Build:
+#   docker build -f Dockerfile.ubuntu -t opencode-enterprise .
+#
+# Run:
+#   docker run -it \
+#     -e AZURE_OPENAI_API_KEY="your-key" \
+#     -e AZURE_OPENAI_ENDPOINT="https://your-endpoint.openai.azure.com" \
+#     -e AZURE_OPENAI_DEPLOYMENT="your-deployment" \
+#     -v $(pwd):/workspace \
+#     opencode-enterprise
+#
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Stage 1: Build environment
+# -----------------------------------------------------------------------------
+FROM ubuntu:24.04 AS builder
+
+# Avoid interactive prompts during apt-get
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Bun configuration - must match version in package.json packageManager field
+ARG BUN_VERSION=1.3.5
+ENV BUN_INSTALL=/root/.bun
+ENV PATH="$BUN_INSTALL/bin:$PATH"
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    build-essential \
+    unzip \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install specific Bun version to match project requirements
+RUN curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
+
+# Set working directory
+WORKDIR /build
+
+# Copy package files first (for better layer caching)
+COPY package.json bun.lock* ./
+COPY packages/opencode/package.json ./packages/opencode/
+COPY packages/plugin/package.json ./packages/plugin/
+COPY packages/script/package.json ./packages/script/
+COPY packages/sdk/js/package.json ./packages/sdk/js/
+COPY packages/util/package.json ./packages/util/
+
+# Copy remaining source files
+COPY . .
+
+# Install dependencies
+RUN bun install --frozen-lockfile || bun install
+
+# Build the project
+WORKDIR /build/packages/opencode
+RUN bun run build
+
+# Verify build output
+RUN ls -la dist/ && \
+    echo "Build artifacts:" && \
+    find dist -name "opencode" -type f
+
+# -----------------------------------------------------------------------------
+# Stage 2: Runtime environment (minimal)
+# -----------------------------------------------------------------------------
+FROM ubuntu:24.04 AS runtime
+
+# Avoid interactive prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Labels for the image
+LABEL org.opencontainers.image.title="OpenCode Enterprise"
+LABEL org.opencontainers.image.description="OpenCode 'Aux petits Oignons' - Enterprise Edition for Azure"
+LABEL org.opencontainers.image.vendor="Tradebyte"
+LABEL org.opencontainers.image.version="1.1.25"
+
+# Install only runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ripgrep \
+    git \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user for security (optional, uncomment if needed)
+# RUN useradd -m -s /bin/bash opencode
+# USER opencode
+
+# Copy the compiled binary from builder
+# We copy all architectures and the entrypoint will use the right one
+COPY --from=builder /build/packages/opencode/dist/opencode-linux-x64/bin/opencode /usr/local/bin/opencode-x64
+COPY --from=builder /build/packages/opencode/dist/opencode-linux-x64-baseline/bin/opencode /usr/local/bin/opencode-x64-baseline
+
+# Detect architecture and create symlink at runtime
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ]; then \
+        ln -sf /usr/local/bin/opencode-x64 /usr/local/bin/opencode; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        echo "ARM64 binary would be linked here"; \
+    fi && \
+    chmod +x /usr/local/bin/opencode*
+
+# Verify the binary works
+RUN opencode --version || opencode-x64 --version || opencode-x64-baseline --version
+
+# =============================================================================
+# Azure OpenAI Configuration
+# =============================================================================
+# These environment variables MUST be set at runtime
+# Do NOT put actual credentials here
+
+ENV AZURE_OPENAI_API_KEY=""
+ENV AZURE_OPENAI_ENDPOINT=""
+ENV AZURE_OPENAI_DEPLOYMENT=""
+ENV AZURE_OPENAI_API_VERSION="2024-10-21"
+
+# Optional: OpenCode configuration
+ENV OPENCODE_LOG_LEVEL="info"
+
+# =============================================================================
+# Working directory and entrypoint
+# =============================================================================
+
+# Set working directory for mounted volumes
+WORKDIR /workspace
+
+# Healthcheck (optional)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD opencode --version || exit 1
+
+# Default entrypoint
+ENTRYPOINT ["opencode"]
+
+# Default command (show help if no args)
+CMD ["--help"]
