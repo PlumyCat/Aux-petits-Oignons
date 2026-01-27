@@ -9,7 +9,7 @@ import { mapValues } from "remeda"
 import { errors } from "../error"
 import { lazy } from "../../util/lazy"
 import { getEnterpriseProviders } from "../../enterprise/models/provider-adapter"
-import { loadEnterpriseConfig } from "../../enterprise/config/loader"
+import { loadEnterpriseConfig, isProviderEnforcementEnabled, getEnterpriseProviderIDs } from "../../enterprise/config/loader"
 
 export const ProviderRoutes = lazy(() =>
   new Hono()
@@ -108,7 +108,7 @@ export const ProviderRoutes = lazy(() =>
               },
             },
           },
-          ...errors(400),
+          ...errors(400, 403),
         },
       }),
       validator(
@@ -125,6 +125,18 @@ export const ProviderRoutes = lazy(() =>
       ),
       async (c) => {
         const providerID = c.req.valid("param").providerID
+
+        // MODE ENTERPRISE: Bloquer /connect pour les providers non autorisés
+        if (isProviderEnforcementEnabled()) {
+          const allowedProviders = getEnterpriseProviderIDs()
+          if (!allowedProviders.includes(providerID)) {
+            return c.json({
+              error: "Provider non autorisé",
+              message: "Mode Enterprise : seuls les providers Azure OpenAI sont autorisés. Ce provider ne peut pas être connecté."
+            }, 403)
+          }
+        }
+
         const { method } = c.req.valid("json")
         const result = await ProviderAuth.authorize({
           providerID,
@@ -148,7 +160,7 @@ export const ProviderRoutes = lazy(() =>
               },
             },
           },
-          ...errors(400),
+          ...errors(400, 403),
         },
       }),
       validator(
@@ -166,6 +178,18 @@ export const ProviderRoutes = lazy(() =>
       ),
       async (c) => {
         const providerID = c.req.valid("param").providerID
+
+        // MODE ENTERPRISE: Bloquer /connect pour les providers non autorisés
+        if (isProviderEnforcementEnabled()) {
+          const allowedProviders = getEnterpriseProviderIDs()
+          if (!allowedProviders.includes(providerID)) {
+            return c.json({
+              error: "Provider non autorisé",
+              message: "Mode Enterprise : seuls les providers Azure OpenAI sont autorisés. Ce provider ne peut pas être connecté."
+            }, 403)
+          }
+        }
+
         const { method, code } = c.req.valid("json")
         await ProviderAuth.callback({
           providerID,

@@ -4,6 +4,9 @@
   "projectName": "Aux petits Oignons",
   "description": "Configuration entreprise pour déploiements Azure de bots Copilot Studio",
 
+  "locked": true,
+  "enforceProviders": true,
+
   "azure": {
     "namingConventions": {
       "prefix": "aux",
@@ -27,15 +30,6 @@
       "enabled": true,
       "azureEndpoint": "${AZURE_OPENAI_ENDPOINT}",
       "azureDeployment": "gpt-4.1-mini"
-    },
-    {
-      "id": "claude-sonnet",
-      "name": "Claude Sonnet",
-      "provider": "anthropic",
-      "default": false,
-      "enabled": true,
-      "azureEndpoint": "${ANTHROPIC_BASE_URL}",
-      "azureDeployment": "claude-sonnet-4-5"
     },
     {
       "id": "gpt-5-mini",
@@ -78,6 +72,5 @@
     }
   },
 
-  "locked": true,
   "_comment": "Configuration verrouillée - Ne peut être modifiée que par l'équipe technique. Les consultants ne peuvent pas modifier ce fichier."
 }

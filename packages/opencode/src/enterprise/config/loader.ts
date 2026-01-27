@@ -31,6 +31,8 @@ export interface EnterpriseConfig {
   version: string
   projectName: string
   description: string
+  locked: boolean
+  enforceProviders?: boolean
   azure: {
     namingConventions: {
       prefix: string
@@ -55,13 +57,13 @@ export interface EnterpriseConfig {
     }
     features: Record<string, boolean>
   }
-  locked: boolean
 }
 
 let cachedConfig: EnterpriseConfig | null = null
 
 /**
  * Charge la configuration entreprise depuis /config/enterprise-config.json
+ * ou depuis le chemin spécifié par OPENCODE_ENTERPRISE_CONFIG_PATH (pour le bundle desktop)
  */
 export function loadEnterpriseConfig(): EnterpriseConfig | null {
   if (cachedConfig) {
@@ -69,9 +71,14 @@ export function loadEnterpriseConfig(): EnterpriseConfig | null {
   }
 
   try {
-    // Chercher le fichier de config à la racine du projet
+    // 1. Vérifier si un chemin est spécifié via variable d'environnement (bundle desktop)
+    let configPath = process.env.OPENCODE_ENTERPRISE_CONFIG_PATH
+
+    // 2. Sinon, chercher le fichier de config à la racine du projet
     // On remonte depuis packages/opencode/src/enterprise/config jusqu'à la racine
-    const configPath = path.resolve(__dirname, "../../../../../config/enterprise-config.json")
+    if (!configPath) {
+      configPath = path.resolve(__dirname, "../../../../../config/enterprise-config.json")
+    }
 
     if (!existsSync(configPath)) {
       log.warn("Fichier enterprise-config.json introuvable", { path: configPath })
@@ -216,4 +223,23 @@ export function getConfigLockInfo(): string {
   }
 
   return `Configuration "${config.projectName}" est modifiable`
+}
+
+/**
+ * Vérifie si le mode enforcement des providers est activé
+ * Quand activé, seuls les providers enterprise sont autorisés
+ */
+export function isProviderEnforcementEnabled(): boolean {
+  const config = loadEnterpriseConfig()
+  return config?.locked === true && config?.enforceProviders === true
+}
+
+/**
+ * Récupère les IDs des providers autorisés en mode enterprise
+ * Retourne un tableau vide si enforceProviders n'est pas activé
+ */
+export function getEnterpriseProviderIDs(): string[] {
+  const config = loadEnterpriseConfig()
+  if (!config?.enforceProviders) return []
+  return config.aiModels.filter(m => m.enabled).map(m => m.id)
 }

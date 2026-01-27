@@ -11,14 +11,21 @@ import { CodexAuthPlugin } from "./codex"
 import { Session } from "../session"
 import { NamedError } from "@opencode-ai/util/error"
 import { CopilotAuthPlugin } from "./copilot"
+import { isProviderEnforcementEnabled } from "../enterprise/config/loader"
 
 export namespace Plugin {
   const log = Log.create({ service: "plugin" })
 
-  const BUILTIN = ["opencode-anthropic-auth@0.0.9", "@gitlab/opencode-gitlab-auth@1.3.0"]
+  // En mode enterprise, on exclut les plugins des providers non-autorisés
+  const BUILTIN = isProviderEnforcementEnabled()
+    ? ["@gitlab/opencode-gitlab-auth@1.3.0"] // Exclure anthropic-auth en mode enterprise
+    : ["opencode-anthropic-auth@0.0.9", "@gitlab/opencode-gitlab-auth@1.3.0"]
 
   // Built-in plugins that are directly imported (not installed from npm)
-  const INTERNAL_PLUGINS: PluginInstance[] = [CodexAuthPlugin, CopilotAuthPlugin]
+  // En mode enterprise, on désactive Codex et Copilot (non-Azure)
+  const INTERNAL_PLUGINS: PluginInstance[] = isProviderEnforcementEnabled()
+    ? [] // Pas de plugins internes en mode enterprise
+    : [CodexAuthPlugin, CopilotAuthPlugin]
 
   const state = Instance.state(async () => {
     const client = createOpencodeClient({

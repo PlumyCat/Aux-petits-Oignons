@@ -1590,9 +1590,42 @@ export default function Layout(props: ParentProps) {
             </DragDropProvider>
           </div>
           <div class="shrink-0 w-full pt-3 pb-3 flex flex-col items-center gap-2">
-            <Tooltip placement={sidebarProps.mobile ? "bottom" : "right"} value="Settings">
-              <IconButton disabled icon="settings-gear" variant="ghost" size="large" />
-            </Tooltip>
+            <DropdownMenu>
+              <Tooltip placement={sidebarProps.mobile ? "bottom" : "right"} value="Settings">
+                <DropdownMenu.Trigger as={IconButton} icon="settings-gear" variant="ghost" size="large" />
+              </Tooltip>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content class="mb-1 min-w-48">
+                  <DropdownMenu.Group>
+                    <DropdownMenu.GroupLabel>Theme</DropdownMenu.GroupLabel>
+                    <For each={availableThemeEntries()}>
+                      {([id, definition]) => (
+                        <DropdownMenu.CheckboxItem
+                          checked={theme.themeId() === id}
+                          onSelect={() => theme.setTheme(id)}
+                        >
+                          <DropdownMenu.ItemLabel>{definition.name ?? id}</DropdownMenu.ItemLabel>
+                        </DropdownMenu.CheckboxItem>
+                      )}
+                    </For>
+                  </DropdownMenu.Group>
+                  <DropdownMenu.Separator />
+                  <DropdownMenu.Group>
+                    <DropdownMenu.GroupLabel>Color scheme</DropdownMenu.GroupLabel>
+                    <For each={colorSchemeOrder}>
+                      {(scheme) => (
+                        <DropdownMenu.CheckboxItem
+                          checked={theme.colorScheme() === scheme}
+                          onSelect={() => theme.setColorScheme(scheme)}
+                        >
+                          <DropdownMenu.ItemLabel>{colorSchemeLabel[scheme]}</DropdownMenu.ItemLabel>
+                        </DropdownMenu.CheckboxItem>
+                      )}
+                    </For>
+                  </DropdownMenu.Group>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu>
             <Tooltip placement={sidebarProps.mobile ? "bottom" : "right"} value="Help">
               <IconButton
                 icon="help"

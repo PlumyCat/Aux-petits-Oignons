@@ -98,6 +98,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /build/packages/opencode/dist/opencode-linux-x64/bin/opencode /usr/local/bin/opencode-x64
 COPY --from=builder /build/packages/opencode/dist/opencode-linux-x64-baseline/bin/opencode /usr/local/bin/opencode-x64-baseline
 
+# Copy enterprise config - IMPORTANT for model configuration
+# The loader expects config at path relative to compiled __dirname
+COPY --from=builder /build/config /opt/opencode/config
+
+# Create symlink structure matching the compiled path expectations
+# The loader uses: path.resolve(__dirname, "../../../../../config/enterprise-config.json")
+# When compiled, __dirname points to /build/packages/opencode/src/enterprise/config
+# So we need /build/config/enterprise-config.json to exist
+RUN mkdir -p /build && ln -sf /opt/opencode/config /build/config
+
 # Detect architecture and create symlink at runtime
 RUN ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ]; then \

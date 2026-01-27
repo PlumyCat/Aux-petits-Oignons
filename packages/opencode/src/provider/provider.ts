@@ -37,7 +37,7 @@ import { createPerplexity } from "@ai-sdk/perplexity"
 import { createVercel } from "@ai-sdk/vercel"
 import { createGitLab } from "@gitlab/gitlab-ai-provider"
 import { ProviderTransform } from "./transform"
-import { loadEnterpriseConfig } from "../enterprise/config/loader"
+import { loadEnterpriseConfig, isProviderEnforcementEnabled, getEnterpriseProviderIDs } from "../enterprise/config/loader"
 import { getEnterpriseProviders } from "../enterprise/models/provider-adapter"
 
 export namespace Provider {
@@ -945,6 +945,24 @@ export namespace Provider {
       if (provider.name) partial.name = provider.name
       if (provider.options) partial.options = provider.options
       mergeProvider(providerID, partial)
+    }
+
+    // MODE ENTERPRISE: Enforcement strict des providers Azure OpenAI uniquement
+    if (isProviderEnforcementEnabled()) {
+      log.warn("⚠️  MODE ENTERPRISE ACTIF - Azure OpenAI uniquement")
+      log.warn("Les providers non-autorisés seront ignorés (Anthropic, OpenAI direct, etc.)")
+
+      const enterpriseIDs = getEnterpriseProviderIDs()
+      log.info("Providers enterprise autorisés", { ids: enterpriseIDs })
+
+      // Supprimer TOUS les providers qui ne sont pas dans la liste enterprise
+      // Cela inclut les providers chargés via env vars, config utilisateur, ou OAuth
+      for (const providerID of Object.keys(providers)) {
+        if (!enterpriseIDs.includes(providerID)) {
+          log.warn("Provider supprimé (non autorisé en mode enterprise)", { providerID })
+          delete providers[providerID]
+        }
+      }
     }
 
     for (const [providerID, provider] of Object.entries(providers)) {

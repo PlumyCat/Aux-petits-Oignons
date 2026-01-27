@@ -144,31 +144,55 @@ fn get_user_shell() -> String {
     std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".to_string())
 }
 
+pub fn get_enterprise_config_path(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
+    // Try to find enterprise-config.json in the bundle resources
+    app.path()
+        .resolve("enterprise-config.json", BaseDirectory::Resource)
+        .ok()
+        .filter(|p| p.exists())
+}
+
 pub fn create_command(app: &tauri::AppHandle, args: &str) -> Command {
     let state_dir = app
         .path()
         .resolve("", BaseDirectory::AppLocalData)
         .expect("Failed to resolve app local data dir");
 
+    // Get enterprise config path if bundled
+    let enterprise_config_path = get_enterprise_config_path(app);
+
     #[cfg(target_os = "windows")]
-    return app
-        .shell()
-        .sidecar("opencode-cli")
-        .unwrap()
-        .args(args.split_whitespace())
-        .env("OPENCODE_EXPERIMENTAL_ICON_DISCOVERY", "true")
-        .env("OPENCODE_CLIENT", "desktop")
-        .env("XDG_STATE_HOME", &state_dir);
+    {
+        let mut cmd = app
+            .shell()
+            .sidecar("opencode-cli")
+            .unwrap()
+            .args(args.split_whitespace())
+            .env("OPENCODE_EXPERIMENTAL_ICON_DISCOVERY", "true")
+            .env("OPENCODE_CLIENT", "desktop")
+            .env("XDG_STATE_HOME", &state_dir);
+
+        if let Some(config_path) = enterprise_config_path {
+            cmd = cmd.env("OPENCODE_ENTERPRISE_CONFIG_PATH", config_path.to_string_lossy().to_string());
+        }
+
+        return cmd;
+    }
 
     #[cfg(not(target_os = "windows"))]
     return {
         let sidecar = get_sidecar_path(app);
         let shell = get_user_shell();
+
+        let enterprise_env = enterprise_config_path
+            .map(|p| format!("OPENCODE_ENTERPRISE_CONFIG_PATH=\"{}\" ", p.display()))
+            .unwrap_or_default();
+
         app.shell()
             .command(&shell)
             .env("OPENCODE_EXPERIMENTAL_ICON_DISCOVERY", "true")
             .env("OPENCODE_CLIENT", "desktop")
             .env("XDG_STATE_HOME", &state_dir)
-            .args(["-il", "-c", &format!("\"{}\" {}", sidecar.display(), args)])
+            .args(["-il", "-c", &format!("{}\"{}\" {}", enterprise_env, sidecar.display(), args)])
     };
 }
