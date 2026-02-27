@@ -31,27 +31,24 @@ describe("Enterprise Configuration", () => {
 		expect(Array.isArray(config?.aiModels)).toBe(true)
 	})
 
-	test("devrait avoir exactement 4 modèles configurés", () => {
+	test("devrait avoir exactement 1 modèle configuré", () => {
 		const config = loadEnterpriseConfig()
 
-		expect(config?.aiModels).toHaveLength(4)
+		expect(config?.aiModels).toHaveLength(1)
 	})
 
-	test("devrait avoir les 4 modèles attendus", () => {
+	test("devrait avoir le modèle gpt-5.3-codex", () => {
 		const config = loadEnterpriseConfig()
 		const modelIds = config?.aiModels.map((m) => m.id) || []
 
-		expect(modelIds).toContain("claude-sonnet")
-		expect(modelIds).toContain("gpt-4.1-mini")
-		expect(modelIds).toContain("gpt-5-mini")
-		expect(modelIds).toContain("model-routeur")
+		expect(modelIds).toContain("gpt-5.3-codex")
 	})
 
-	test("devrait avoir Claude Sonnet comme modèle par défaut", () => {
+	test("devrait avoir GPT-5.3 Codex comme modèle par défaut", () => {
 		const defaultModel = getDefaultAIModel()
 
 		expect(defaultModel).not.toBeNull()
-		expect(defaultModel?.id).toBe("claude-sonnet")
+		expect(defaultModel?.id).toBe("gpt-5.3-codex")
 		expect(defaultModel?.default).toBe(true)
 		expect(defaultModel?.enabled).toBe(true)
 	})
@@ -59,16 +56,16 @@ describe("Enterprise Configuration", () => {
 	test("devrait récupérer tous les modèles activés", () => {
 		const enabledModels = getEnabledAIModels()
 
-		expect(enabledModels).toHaveLength(4)
+		expect(enabledModels).toHaveLength(1)
 		expect(enabledModels.every((m) => m.enabled)).toBe(true)
 	})
 
 	test("devrait récupérer un modèle par ID", () => {
-		const model = getAIModelById("gpt-4.1-mini")
+		const model = getAIModelById("gpt-5.3-codex")
 
 		expect(model).not.toBeNull()
-		expect(model?.id).toBe("gpt-4.1-mini")
-		expect(model?.name).toBe("GPT-4.1 Mini")
+		expect(model?.id).toBe("gpt-5.3-codex")
+		expect(model?.name).toBe("GPT-5.3 Codex")
 		expect(model?.provider).toBe("azure")
 	})
 
@@ -77,17 +74,23 @@ describe("Enterprise Configuration", () => {
 
 		expect(model).toBeNull()
 	})
+
+	test("devrait retourner null pour les anciens modèles supprimés", () => {
+		expect(getAIModelById("gpt-4.1-mini")).toBeNull()
+		expect(getAIModelById("gpt-5-mini")).toBeNull()
+		expect(getAIModelById("model-routeur")).toBeNull()
+	})
 })
 
 describe("Azure Provider Configuration", () => {
-	test("devrait avoir 3 modèles Azure", () => {
+	test("devrait avoir 1 modèle Azure", () => {
 		const config = loadEnterpriseConfig()
 		const azureModels = config?.aiModels.filter((m) => m.provider === "azure") || []
 
-		expect(azureModels).toHaveLength(3)
+		expect(azureModels).toHaveLength(1)
 	})
 
-	test("tous les modèles Azure devraient avoir azureEndpoint et azureDeployment", () => {
+	test("le modèle Azure devrait avoir azureEndpoint et azureDeployment", () => {
 		const config = loadEnterpriseConfig()
 		const azureModels = config?.aiModels.filter((m) => m.provider === "azure") || []
 
@@ -99,46 +102,10 @@ describe("Azure Provider Configuration", () => {
 		}
 	})
 
-	test("les modèles GPT devraient utiliser AZURE_OPENAI_ENDPOINT", () => {
-		const config = loadEnterpriseConfig()
-		const gptModels = config?.aiModels.filter((m) => m.id.startsWith("gpt-")) || []
+	test("gpt-5.3-codex devrait utiliser AZURE_OPENAI_ENDPOINT", () => {
+		const model = getAIModelById("gpt-5.3-codex")
 
-		for (const model of gptModels) {
-			expect(model.azureEndpoint).toContain("AZURE_OPENAI_ENDPOINT")
-		}
-	})
-
-	test("le model-routeur devrait utiliser AZURE_AI_FOUNDRY_ENDPOINT", () => {
-		const model = getAIModelById("model-routeur")
-
-		expect(model?.azureEndpoint).toContain("AZURE_AI_FOUNDRY_ENDPOINT")
-	})
-})
-
-describe("Anthropic Provider Configuration", () => {
-	test("devrait avoir 1 modèle Anthropic", () => {
-		const config = loadEnterpriseConfig()
-		const anthropicModels = config?.aiModels.filter((m) => m.provider === "anthropic") || []
-
-		expect(anthropicModels).toHaveLength(1)
-	})
-
-	test("Claude Sonnet devrait être le modèle Anthropic", () => {
-		const model = getAIModelById("claude-sonnet")
-
-		expect(model).not.toBeNull()
-		expect(model?.provider).toBe("anthropic")
-		expect(model?.name).toBe("Claude Sonnet")
-	})
-
-	test("Claude Sonnet devrait avoir azureEndpoint et azureDeployment (Azure AI Foundry)", () => {
-		const model = getAIModelById("claude-sonnet")
-
-		expect(model).not.toBeNull()
-		expect(model?.azureEndpoint).toBeDefined()
-		expect(model?.azureDeployment).toBeDefined()
-		expect(model?.azureEndpoint).toContain("ANTHROPIC_BASE_URL")
-		expect(model?.azureDeployment).toBe("claude-sonnet-4-5")
+		expect(model?.azureEndpoint).toContain("AZURE_OPENAI_ENDPOINT")
 	})
 })
 
@@ -146,7 +113,7 @@ describe("Model Metadata", () => {
 	test("devrait lister les métadonnées de tous les modèles", () => {
 		const metadata = listEnterpriseModelsMetadata()
 
-		expect(metadata).toHaveLength(4)
+		expect(metadata).toHaveLength(1)
 		expect(metadata[0]).toHaveProperty("id")
 		expect(metadata[0]).toHaveProperty("name")
 		expect(metadata[0]).toHaveProperty("provider")
@@ -171,8 +138,6 @@ describe("Model Metadata", () => {
 
 describe("Validation", () => {
 	test("validateEnterpriseModels devrait identifier les erreurs de configuration", () => {
-		// Cette validation échouera si les variables d'environnement ne sont pas définies
-		// C'est le comportement attendu
 		const validation = validateEnterpriseModels()
 
 		expect(validation).toHaveProperty("valid")
@@ -180,7 +145,7 @@ describe("Validation", () => {
 		expect(validation).toHaveProperty("modelResults")
 		expect(Array.isArray(validation.errors)).toBe(true)
 		expect(Array.isArray(validation.modelResults)).toBe(true)
-		expect(validation.modelResults).toHaveLength(4)
+		expect(validation.modelResults).toHaveLength(1)
 	})
 
 	test("validateAllAzureModels devrait valider la structure des modèles Azure", () => {
@@ -189,7 +154,7 @@ describe("Validation", () => {
 		expect(validation).toHaveProperty("valid")
 		expect(validation).toHaveProperty("results")
 		expect(Array.isArray(validation.results)).toBe(true)
-		expect(validation.results).toHaveLength(3) // 3 modèles Azure
+		expect(validation.results).toHaveLength(1)
 	})
 })
 
