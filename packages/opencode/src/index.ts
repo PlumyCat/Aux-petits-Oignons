@@ -1,3 +1,26 @@
+// Load .env file before any other imports that might need env vars
+import { readFileSync, existsSync } from "fs"
+import { resolve } from "path"
+;(function loadDotEnv() {
+  const candidates = [
+    resolve(process.cwd(), ".env"),
+    resolve(process.env.OPENCODE_ENTERPRISE_CONFIG_PATH || "", "..", ".env"),
+  ]
+  for (const envPath of candidates) {
+    if (!existsSync(envPath)) continue
+    for (const line of readFileSync(envPath, "utf-8").split(/\r?\n/)) {
+      const trimmed = line.trim()
+      if (!trimmed || trimmed.startsWith("#")) continue
+      const eq = trimmed.indexOf("=")
+      if (eq === -1) continue
+      const key = trimmed.slice(0, eq).trim()
+      const val = trimmed.slice(eq + 1).trim()
+      if (!process.env[key]) process.env[key] = val
+    }
+    break
+  }
+})()
+
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 import { RunCommand } from "./cli/cmd/run"

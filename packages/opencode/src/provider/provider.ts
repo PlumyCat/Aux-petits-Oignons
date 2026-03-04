@@ -925,10 +925,11 @@ export namespace Provider {
             // Utiliser le deployment name si disponible, sinon modelID
             const deployment = deploymentMap.get(modelID) ?? modelID
             
-            // Utiliser sdk.chat() par défaut pour les modèles Azure enterprise
-            // car ils utilisent l'endpoint /chat/completions (format OpenAI standard)
-            // sauf si useCompletionUrls est explicitement false
-            if (options?.["useCompletionUrls"] === false) {
+            // Utiliser sdk.responses() pour les modèles Azure AI Foundry (Responses API)
+            // ou sdk.chat() pour les modèles Azure OpenAI standard (chat/completions)
+            if (options?.["useResponses"] === true) {
+              return sdk.responses(deployment)
+            } else if (options?.["useCompletionUrls"] === false) {
               return sdk.responses(deployment)
             } else {
               return sdk.chat(deployment)

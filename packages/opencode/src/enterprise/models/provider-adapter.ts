@@ -129,20 +129,22 @@ export function createEnterpriseProvider(): Record<string, ModelsDev.Provider> {
 						apiVersion: "2023-05-15",
 					}
 				} else if (url.hostname.includes(".cognitiveservices.azure.com")) {
-					// Mode custom pour cognitiveservices.azure.com
-					// IMPORTANT: SDK exige resourceName même avec baseURL
-					// Détecter la version d'API selon l'endpoint
-					// - models-appli-auxpetisoignons → 2023-05-15 (modèles GPT standard)
-					// - efe-mkk0vw0r-eastus2 → 2024-12-01-preview (Model Routeur Azure AI Foundry)
-					const apiVersion = resourceName.includes("efe-mkk0vw0r") 
-						? "2024-12-01-preview" 
-						: "2023-05-15"
-					
+					// Mode Responses API pour Azure AI Foundry (cognitiveservices.azure.com)
+					// gpt-5.3-codex ne supporte PAS chat/completions, uniquement le Responses API
+					// URL: POST {endpoint}/openai/responses?api-version=2025-04-01-preview
 					azureOptions = {
 						resourceName,
 						baseURL: `${endpoint}/openai`,
-						apiVersion,
-						useDeploymentBasedUrls: true,
+						apiVersion: "2025-04-01-preview",
+						useDeploymentBasedUrls: false,
+						useResponses: true,
+						// Le SDK ajoute /v1/ quand useDeploymentBasedUrls=false
+						// mais Azure AI Foundry attend /openai/responses sans /v1/
+						fetch: (input: string | URL | Request, init?: any) => {
+							let urlStr = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url
+							urlStr = urlStr.replace("/openai/v1/", "/openai/")
+							return globalThis.fetch(urlStr, init)
+						},
 					}
 				} else {
 					log.warn(`Type d'endpoint Azure non reconnu: ${endpoint}`)
